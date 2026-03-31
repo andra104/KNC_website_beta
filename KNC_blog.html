@@ -1,0 +1,558 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>KNC Blog - KiloNovaCatcher</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="./KiloNovaCatcher_files/mainpublic.css">
+    <link rel="stylesheet" href="./KiloNovaCatcher_files/qgi8qdf.css">
+    <link rel="shortcut icon" type="image/jpg" href="http://kilonovacatcher.in2p3.fr/images/fav_32.png">
+    
+
+</head>
+<body>
+    <div id="page-wrapper">
+
+        <!-- Nav -->
+        <nav id="nav">
+            <ul>
+                <li><a href="http://kilonovacatcher.in2p3.fr/">Home</a></li>
+                <li><a href="http://kilonovacatcher.in2p3.fr/science">Science</a></li>
+                <li><a href="http://kilonovacatcher.in2p3.fr/faq">FAQ</a></li>
+                <li class="current"><a href="#">Blog</a></li>
+                <li><a href="http://kilonovacatcher.in2p3.fr/login">Login</a></li>
+                <li><a href="http://kilonovacatcher.in2p3.fr/registration">Register</a></li>
+            </ul>
+        </nav>
+
+        <!-- Header -->
+        <section id="header" class="wrapper">
+            <div id="logo">
+                <h1><a href="http://kilonovacatcher.in2p3.fr/"><img class="image" src="./KiloNovaCatcher_files/LOGO_FINAL_J_600.png"></a></h1>
+                <p>the grandma citizen science website on <span class="purplecol">gravitational wave astronomy</span>.</p>
+                <p class="smaller">supported by <a href="https://grandma.lal.in2p3.fr/">GRANDMA</a> and <a href="https://u-paris.fr/">université de paris</a>.</p>
+            </div>
+        </section>
+
+        <!-- Blog Hero -->
+        <section class="wrapper style1">
+            <div class="title"><p>KNC Community Blog</p></div>
+            <div class="container">
+                <p style="text-align: center; font-size: 1.2em; color: rgba(255, 255, 255, 0.95); max-width: 800px; margin: 0 auto;">
+                    Stay up to date with observations, scientific discoveries, events, announcements, and success stories from the KiloNova Catcher community.
+                </p>
+            </div>
+        </section>
+
+        <!-- Main Blog Section -->
+        <section class="wrapper style2">
+            <div class="container">
+
+                <!-- Create Post Section -->
+                <div class="create-post-section">
+                    <div class="create-post-toggle" onclick="toggleCreatePost()">
+                        <h3>✍️ Create New Post</h3>
+                        <span class="toggle-icon" id="toggleIcon">▼</span>
+                    </div>
+                    
+                    <div class="create-post-form" id="createPostForm">
+                        <form id="blogPostForm">
+                            <div class="form-row">
+                                <label for="postTitle">Post Title *</label>
+                                <input type="text" id="postTitle" required placeholder="Enter your post title...">
+                            </div>
+
+                            <div class="form-row">
+                                <label for="authorName">Author Name *</label>
+                                <input type="text" id="authorName" required placeholder="Your name...">
+                            </div>
+
+                            <div class="form-row">
+                                <label>Select Tags *</label>
+                                <div class="tag-selector">
+                                    <input type="checkbox" id="tag-observation" class="tag-checkbox" value="observation">
+                                    <label for="tag-observation" class="tag-checkbox-label">🔭 Observation</label>
+
+                                    <input type="checkbox" id="tag-science" class="tag-checkbox" value="science">
+                                    <label for="tag-science" class="tag-checkbox-label">🔬 Science</label>
+
+                                    <input type="checkbox" id="tag-event" class="tag-checkbox" value="event">
+                                    <label for="tag-event" class="tag-checkbox-label">📅 Event</label>
+
+                                    <input type="checkbox" id="tag-announcement" class="tag-checkbox" value="announcement">
+                                    <label for="tag-announcement" class="tag-checkbox-label">📢 Announcement</label>
+
+                                    <input type="checkbox" id="tag-success" class="tag-checkbox" value="success">
+                                    <label for="tag-success" class="tag-checkbox-label">🏆 Success</label>
+
+                                    <input type="checkbox" id="tag-news" class="tag-checkbox" value="news">
+                                    <label for="tag-news" class="tag-checkbox-label">📰 News</label>
+
+                                    <input type="checkbox" id="tag-tutorial" class="tag-checkbox" value="tutorial">
+                                    <label for="tag-tutorial" class="tag-checkbox-label">📚 Tutorial</label>
+
+                                    <input type="checkbox" id="tag-spotlight" class="tag-checkbox" value="spotlight">
+                                    <label for="tag-spotlight" class="tag-checkbox-label">⭐ Spotlight</label>
+
+                                    <input type="checkbox" id="tag-alert" class="tag-checkbox" value="alert">
+                                    <label for="tag-alert" class="tag-checkbox-label">🚨 Alert</label>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <label for="postImage">Featured Image (optional)</label>
+                                <input type="file" id="postImage" accept="image/*" onchange="previewImage(event)">
+                                <img src="" id="imagePreview" class="image-upload-preview" alt="Image preview">
+                            </div>
+
+                            <div class="form-row">
+                                <label for="postContent">Post Content *</label>
+                                <textarea id="postContent" required placeholder="Write your post content here..."></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <input type="checkbox" id="featuredPost">
+                                <label for="featuredPost" style="display: inline; margin-left: 10px;">Mark as Featured Post</label>
+                            </div>
+
+                            <button type="submit" class="button neon-gradient large">Publish Post</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Blog Controls -->
+                <div class="blog-controls">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="🔍 Search posts..." onkeyup="filterPosts()">
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all" onclick="filterByTag('all')">All</button>
+                        <button class="filter-btn" data-filter="observation" onclick="filterByTag('observation')">🔭 Observation</button>
+                        <button class="filter-btn" data-filter="science" onclick="filterByTag('science')">🔬 Science</button>
+                        <button class="filter-btn" data-filter="event" onclick="filterByTag('event')">📅 Event</button>
+                        <button class="filter-btn" data-filter="announcement" onclick="filterByTag('announcement')">📢 Announcement</button>
+                        <button class="filter-btn" data-filter="success" onclick="filterByTag('success')">🏆 Success</button>
+                        <button class="filter-btn" data-filter="news" onclick="filterByTag('news')">📰 News</button>
+                    </div>
+                </div>
+
+                <!-- Blog Grid -->
+                <div class="blog-grid" id="blogGrid">
+                    <!-- Sample Posts - These would be dynamically loaded from a database -->
+                    
+                    <!-- Featured Post -->
+                    <article class="blog-post featured" data-tags="announcement,success">
+                        <img class="post-image" src="https://via.placeholder.com/800x350/302682/ffe08f?text=Featured+Post" alt="Featured">
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-tags">
+                                    <span class="tag-badge tag-announcement">Announcement</span>
+                                    <span class="tag-badge tag-success">Success</span>
+                                </div>
+                                <h3>KNC Detects Kilonova AT2024xyz - Historic First Detection!</h3>
+                            </div>
+                            <div class="post-meta">
+                                <span>👤 Dr. Sarah Antier</span>
+                                <span>📅 November 1, 2025</span>
+                                <span>⏱️ 5 min read</span>
+                            </div>
+                            <p class="post-excerpt">
+                                We are thrilled to announce that the KiloNova Catcher network has successfully detected and confirmed a kilonova event designated AT2024xyz! This marks a historic milestone for citizen science in gravitational wave astronomy. Amateur astronomer teams from Chile, Australia, and France worked together to capture this fleeting cosmic explosion...
+                            </p>
+                            <button class="read-more" onclick="alert('Full post would open here!')">Read Full Story →</button>
+                        </div>
+                    </article>
+
+                    <!-- Regular Posts -->
+                    <article class="blog-post" data-tags="observation">
+                        <img class="post-image" src="https://via.placeholder.com/400x250/5a5d65/ffffff?text=Observation" alt="Observation">
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-tags">
+                                    <span class="tag-badge tag-observation">Observation</span>
+                                </div>
+                                <h3>GW Alert Follow-up: S250928a Field Coverage</h3>
+                            </div>
+                            <div class="post-meta">
+                                <span>👤 Alex Martinez</span>
+                                <span>📅 October 28, 2025</span>
+                            </div>
+                            <p class="post-excerpt">
+                                Following the LIGO/Virgo alert S250928a, our team successfully imaged 15 square degrees of the error region using our 14-inch telescope. While no optical counterpart was detected, we reached a limiting magnitude of 19.5...
+                            </p>
+                            <button class="read-more">Read More →</button>
+                        </div>
+                    </article>
+
+                    <article class="blog-post" data-tags="science,tutorial">
+                        <img class="post-image" src="https://via.placeholder.com/400x250/ff3d79/ffffff?text=Science+Tutorial" alt="Science">
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-tags">
+                                    <span class="tag-badge tag-science">Science</span>
+                                    <span class="tag-badge tag-tutorial">Tutorial</span>
+                                </div>
+                                <h3>Understanding Kilonova Light Curves</h3>
+                            </div>
+                            <div class="post-meta">
+                                <span>👤 Dr. Damien Turpin</span>
+                                <span>📅 October 25, 2025</span>
+                            </div>
+                            <p class="post-excerpt">
+                                Learn how to interpret kilonova light curves and understand what the different phases of brightness tell us about the physics of neutron star mergers. This tutorial covers photometric analysis techniques...
+                            </p>
+                            <button class="read-more">Read More →</button>
+                        </div>
+                    </article>
+
+                    <article class="blog-post" data-tags="event">
+                        <img class="post-image" src="https://via.placeholder.com/400x250/ffe08f/302682?text=Event" alt="Event">
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-tags">
+                                    <span class="tag-badge tag-event">Event</span>
+                                </div>
+                                <h3>Virtual Workshop: Advanced Photometry Techniques</h3>
+                            </div>
+                            <div class="post-meta">
+                                <span>👤 Cristina Andrade</span>
+                                <span>📅 October 22, 2025</span>
+                            </div>
+                            <p class="post-excerpt">
+                                Join us for a virtual workshop on November 15th where we'll dive deep into photometry techniques for transient detection. Topics include aperture photometry, PSF fitting, and image subtraction...
+                            </p>
+                            <button class="read-more">Read More →</button>
+                        </div>
+                    </article>
+
+                    <article class="blog-post" data-tags="spotlight">
+                        <img class="post-image" src="https://via.placeholder.com/400x250/fd7e14/ffffff?text=Member+Spotlight" alt="Spotlight">
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-tags">
+                                    <span class="tag-badge tag-spotlight">Spotlight</span>
+                                </div>
+                                <h3>Member Spotlight: Meet Sophie Dubois</h3>
+                            </div>
+                            <div class="post-meta">
+                                <span>👤 KNC Team</span>
+                                <span>📅 October 20, 2025</span>
+                            </div>
+                            <p class="post-excerpt">
+                                This month we're featuring Sophie Dubois from Lyon, France, who has contributed over 200 observations to KNC. Sophie shares her journey from amateur stargazer to kilonova hunter...
+                            </p>
+                            <button class="read-more">Read More →</button>
+                        </div>
+                    </article>
+
+                    <article class="blog-post" data-tags="news">
+                        <img class="post-image" src="https://via.placeholder.com/400x250/302682/ffe08f?text=News" alt="News">
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-tags">
+                                    <span class="tag-badge tag-news">News</span>
+                                </div>
+                                <h3>LIGO-Virgo-KAGRA Observing Run 5 Begins</h3>
+                            </div>
+                            <div class="post-meta">
+                                <span>👤 KNC News</span>
+                                <span>📅 October 18, 2025</span>
+                            </div>
+                            <p class="post-excerpt">
+                                The fifth observing run of the LIGO-Virgo-KAGRA collaboration has officially begun! With improved sensitivity, we expect more gravitational wave detections than ever before. KNC is ready...
+                            </p>
+                            <button class="read-more">Read More →</button>
+                        </div>
+                    </article>
+
+                    <article class="blog-post" data-tags="alert">
+                        <img class="post-image" src="https://via.placeholder.com/400x250/dc3545/ffffff?text=Alert" alt="Alert">
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-tags">
+                                    <span class="tag-badge tag-alert">Alert</span>
+                                </div>
+                                <h3>⚠️ GRB Alert: Immediate Follow-up Needed</h3>
+                            </div>
+                            <div class="post-meta">
+                                <span>👤 GRANDMA Alert System</span>
+                                <span>📅 October 15, 2025</span>
+                            </div>
+                            <p class="post-excerpt">
+                                Swift has detected GRB251015A at RA=14h23m45s, Dec=+28°12'33". Southern hemisphere observers are requested to begin immediate follow-up observations. Coordinates and finding charts...
+                            </p>
+                            <button class="read-more">Read More →</button>
+                        </div>
+                    </article>
+
+                    <article class="blog-post" data-tags="success,observation">
+                        <img class="post-image" src="https://via.placeholder.com/400x250/ffd700/302682?text=Success" alt="Success">
+                        <div class="post-content">
+                            <div class="post-header">
+                                <div class="post-tags">
+                                    <span class="tag-badge tag-success">Success</span>
+                                    <span class="tag-badge tag-observation">Observation</span>
+                                </div>
+                                <h3>KNC Data Featured in Nature Astronomy Paper</h3>
+                            </div>
+                            <div class="post-meta">
+                                <span>👤 Dr. Sarah Antier</span>
+                                <span>📅 October 12, 2025</span>
+                            </div>
+                            <p class="post-excerpt">
+                                Observations from 12 KNC members have been included in a new publication in Nature Astronomy on the electromagnetic counterparts to gravitational wave events. Congratulations to all contributors...
+                            </p>
+                            <button class="read-more">Read More →</button>
+                        </div>
+                    </article>
+
+                </div>
+
+                <!-- No Results Message -->
+                <div class="no-results" id="noResults" style="display: none;">
+                    <h3>No posts found</h3>
+                    <p>Try adjusting your search or filter criteria.</p>
+                </div>
+
+                <!-- Archive Section -->
+                <div class="archive-section">
+                    <h3>📅 Archive</h3>
+                    <ul class="archive-list">
+                        <li onclick="filterByDate('2025-11')">November 2025 (8 posts)</li>
+                        <li onclick="filterByDate('2025-10')">October 2025 (15 posts)</li>
+                        <li onclick="filterByDate('2025-09')">September 2025 (12 posts)</li>
+                        <li onclick="filterByDate('2025-08')">August 2025 (9 posts)</li>
+                        <li onclick="filterByDate('2025-07')">July 2025 (11 posts)</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Partner Logos -->
+        <div class="container">
+            <div class="row">
+                <div class="col-12-medium" style="margin:auto; text-align:center;">
+                    <section>
+                        <p>
+                            <a href="https://u-paris.fr/"><img src="./KiloNovaCatcher_files/UniversiteParis.png" alt="Université de Paris"></a> 
+                            <a href="https://www.ijclab.in2p3.fr/"><img src="./KiloNovaCatcher_files/IJCLab.png" alt="IJCLab"></a>
+                        </p>
+                    </section>
+                </div>	
+            </div>
+            <div class="row petitfooter">
+                <div class="col-12-medium" style="margin:auto; text-align:center;">
+                    <p style="margin:auto; text-align:center;">
+                        <a href="https://www.cnrs.fr/" title="cnrs.fr" target="_blank"><img src="./KiloNovaCatcher_files/logo_cnrs.png" alt="Logo CNRS"></a>&nbsp;&nbsp;
+                        <a href="https://www.oca.eu/fr/" title="OCA" target="_blank"><img src="./KiloNovaCatcher_files/logo_oca.png" alt="Logo OCA"></a>&nbsp;&nbsp;
+                        <a href="https://pnhe.cnrs.fr/" title="PNHE" target="_blank"><img src="./KiloNovaCatcher_files/logo_pnhe.png" alt="Logo PNHE"></a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <section id="footer">
+            <div class="container">
+                <div id="copyright">
+                    <ul>
+                        <li>© KilonovaCatcher.</li>
+                       <li>Development by <a href="https://orcid.org/0009-0004-9687-3275">Cristina Andrade</a></li>
+                        <li>Design, logo and color by <a href="https://jenniferturpin.fr/">Jennifer Turpin</a>. Template by <a href="http://html5up.net/">HTML5 UP</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Toggle Create Post Form
+        function toggleCreatePost() {
+            const form = document.getElementById('createPostForm');
+            const icon = document.getElementById('toggleIcon');
+            form.classList.toggle('active');
+            icon.classList.toggle('open');
+        }
+
+        // Preview uploaded image
+        function previewImage(event) {
+            const preview = document.getElementById('imagePreview');
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.add('active');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('blogPostForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const title = document.getElementById('postTitle').value;
+            const author = document.getElementById('authorName').value;
+            const content = document.getElementById('postContent').value;
+            const isFeatured = document.getElementById('featuredPost').checked;
+            
+            // Get selected tags
+            const tags = [];
+            document.querySelectorAll('.tag-checkbox:checked').forEach(checkbox => {
+                tags.push(checkbox.value);
+            });
+            
+            if (tags.length === 0) {
+                alert('Please select at least one tag!');
+                return;
+            }
+            
+            // Create new post (in real implementation, this would be sent to a server)
+            const newPost = createPostElement(title, author, content, tags, isFeatured);
+            
+            // Add to blog grid
+            const blogGrid = document.getElementById('blogGrid');
+            if (isFeatured) {
+                blogGrid.insertBefore(newPost, blogGrid.firstChild);
+            } else {
+                // Insert after featured posts
+                const featuredPosts = blogGrid.querySelectorAll('.featured');
+                if (featuredPosts.length > 0) {
+                    featuredPosts[featuredPosts.length - 1].insertAdjacentElement('afterend', newPost);
+                } else {
+                    blogGrid.insertBefore(newPost, blogGrid.firstChild);
+                }
+            }
+            
+            // Reset form
+            this.reset();
+            document.getElementById('imagePreview').classList.remove('active');
+            toggleCreatePost();
+            
+            alert('Post published successfully! 🎉');
+        });
+
+        // Create post element
+        function createPostElement(title, author, content, tags, isFeatured) {
+            const article = document.createElement('article');
+            article.className = isFeatured ? 'blog-post featured' : 'blog-post';
+            article.setAttribute('data-tags', tags.join(','));
+            
+            const excerpt = content.substring(0, 200) + '...';
+            const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            
+            let tagBadges = '';
+            tags.forEach(tag => {
+                const emoji = getTagEmoji(tag);
+                const tagName = tag.charAt(0).toUpperCase() + tag.slice(1);
+                tagBadges += `<span class="tag-badge tag-${tag}">${emoji} ${tagName}</span>`;
+            });
+            
+            article.innerHTML = `
+                <img class="post-image" src="https://via.placeholder.com/400x250/5a5d65/ffffff?text=New+Post" alt="${title}">
+                <div class="post-content">
+                    <div class="post-header">
+                        <div class="post-tags">${tagBadges}</div>
+                        <h3>${title}</h3>
+                    </div>
+                    <div class="post-meta">
+                        <span>👤 ${author}</span>
+                        <span>📅 ${today}</span>
+                    </div>
+                    <p class="post-excerpt">${excerpt}</p>
+                    <button class="read-more">Read More →</button>
+                </div>
+            `;
+            
+            return article;
+        }
+
+        // Get emoji for tag
+        function getTagEmoji(tag) {
+            const emojis = {
+                'observation': '🔭',
+                'science': '🔬',
+                'event': '📅',
+                'announcement': '📢',
+                'success': '🏆',
+                'news': '📰',
+                'tutorial': '📚',
+                'spotlight': '⭐',
+                'alert': '🚨'
+            };
+            return emojis[tag] || '';
+        }
+
+        // Filter posts by tag
+        function filterByTag(tag) {
+            const posts = document.querySelectorAll('.blog-post');
+            const buttons = document.querySelectorAll('.filter-btn');
+            let visibleCount = 0;
+            
+            // Update active button
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === tag) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Filter posts
+            posts.forEach(post => {
+                const postTags = post.getAttribute('data-tags');
+                if (tag === 'all' || postTags.includes(tag)) {
+                    post.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    post.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        // Search posts
+        function filterPosts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const posts = document.querySelectorAll('.blog-post');
+            let visibleCount = 0;
+            
+            posts.forEach(post => {
+                const title = post.querySelector('h3').textContent.toLowerCase();
+                const content = post.querySelector('.post-excerpt').textContent.toLowerCase();
+                const author = post.querySelector('.post-meta span:first-child').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm)) {
+                    post.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    post.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        // Filter by date (placeholder function)
+        function filterByDate(date) {
+            alert('Archive filtering for ' + date + ' would be implemented here!');
+        }
+    </script>
+
+    <!-- Mobile Nav Scripts -->
+    <script src="./KiloNovaCatcher_files/jquery.min.js"></script>
+    <script src="./KiloNovaCatcher_files/jquery.dropotron.min.js"></script>
+    <script src="./KiloNovaCatcher_files/browser.min.js"></script>
+    <script src="./KiloNovaCatcher_files/breakpoints.min.js"></script>
+    <script src="./KiloNovaCatcher_files/util.js"></script>
+    <script src="./KiloNovaCatcher_files/main.js"></script>
+
+</body>
+</html>

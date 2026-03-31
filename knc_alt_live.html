@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KNC — Impact Counter</title>
+
+  <!-- ── Site CSS: mainpublic.css (Source Sans Pro body) + qgi8qdf.css (rift-soft via Typekit) ── -->
+  <link rel="stylesheet" href="./KiloNovaCatcher_files/mainpublic.css">
+  <link rel="stylesheet" href="./KiloNovaCatcher_files/qgi8qdf.css">
+
+  <style>
+    /* ─────────────────────────────────────
+       IMPACT COUNTER — page-specific styles
+       Built on top of mainpublic.css.
+       Uses only fonts/colors already in that file.
+    ───────────────────────────────────── */
+
+    /* Reset body margin that mainpublic might not cover */
+    body {
+      background: #fff;
+      overflow-x: hidden;
+    }
+
+    /* ── Section wrappers (identical to site pattern) ── */
+    .wrapper.style1 {
+      background: linear-gradient(135deg, #302682 0%, #3d30a3 100%);
+      color: rgba(255,255,255,0.88);
+      padding: 80px 0 60px;
+    }
+    .wrapper.style2 { background: #fff; padding: 70px 0 60px; }
+    .wrapper.style3 { background: #f8f9fc; padding: 70px 0 60px; }
+
+    /* ── Ensure #header doesn't use the tall homepage height ── */
+    #header { height: auto !important; min-height: auto !important; }
+    .homepage #header { height: auto !important; }
+
+    .container {
+      margin: 0 auto;
+      max-width: 1200px;
+      padding: 0 28px;
+      width: 100%;
+    }
+
+    /* ── Hero ── */
+    .impact-hero {
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+
+    .impact-hero h1 {
+      font-family: 'rift-soft', sans-serif;
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.1;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .impact-hero h1 span { color: #ffe08f; }
+
+    .impact-hero p {
+      color: rgba(255,255,255,0.82);
+      font-size: 1.15em;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.65;
+    }
+
+    /* Live pill */
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'rift-soft', sans-serif;
+      font-size: 0.78em;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #ffe08f;
+      border: 2px solid rgba(255,224,143,0.4);
+      background: rgba(255,224,143,0.1);
+      border-radius: 99px;
+      padding: 0.35rem 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #ffe08f;
+      box-shadow: 0 0 8px #ffe08f;
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* ── Section heading style ── */
+    .impact-section-title {
+      font-family: 'rift-soft', sans-serif;
+      font-size: 2em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #302682;
+      text-align: center;
+      margin-bottom: 0.4em;
+    }
+
+    .impact-section-sub {
+      text-align: center;
+      color: #5a5d65;
+      font-size: 1.05em;
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+    }
+
+    /* ── Stat boxes — extends site .stat-box exactly ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    /* Reuse site .stat-box + .stat-number + .stat-label classes */
+    .stat-box {
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    .stat-box::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: #ffe08f;
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+      transform-origin: left;
+    }
+
+    .stat-box:hover::after { transform: scaleX(1); }
+
+    .stat-box .stat-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .stat-box .stat-desc {
+      font-size: 0.8em;
+      opacity: 0.65;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .stat-box.wide { grid-column: span 2; }
+    @media (max-width: 640px) { .stat-box.wide { grid-column: span 1; } }
+
+    /* ── Chart card ── */
+    .chart-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(48,38,130,0.1);
+      padding: 28px 24px 20px;
+      border-top: 5px solid #302682;
+      margin-bottom: 24px;
+    }
+
+    .chart-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .chart-card-title {
+      font-family: 'rift-soft', sans-serif;
+      font-size: 1.1em;
+      font-weight: 700;
+      color: #302682;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82em;
+      color: #5a5d65;
+      font-weight: 600;
+    }
+
+    .legend-swatch {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+    }
+
+    .bar-chart-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 100px;
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar-fill {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      transform-origin: bottom;
+      transform: scaleY(0);
+      transition: transform 0.85s cubic-bezier(0.16,1,0.3,1);
+      min-height: 3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* shimmer on bars */
+    .bar-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      animation: shimmer 2.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .bar-fill.gcn-bar { background: linear-gradient(180deg, #ffe08f, #ffd970); }
+    .bar-fill.obs-bar  { background: linear-gradient(180deg, #5040b8, #302682); }
+
+    .bar-year {
+      font-size: 0.7em;
+      color: #5a5d65;
+      font-weight: 600;
+    }
+
+    /* ── Ticker ── */
+    .ticker-wrap {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px rgba(48,38,130,0.08);
+      overflow: hidden;
+      border-left: 5px solid #ff3d79;
+    }
+
+    .ticker-label {
+      font-family: 'rift-soft', sans-serif;
+      font-size: 0.78em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #302682;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .ticker-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(48,38,130,0.12);
+    }
+
+    .ticker-track {
+      display: flex;
+      gap: 12px;
+      animation: scroll-left 32s linear infinite;
+      width: max-content;
+    }
+
+    .ticker-track:hover { animation-play-state: paused; }
+
+    @keyframes scroll-left {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    .ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      font-size: 0.85em;
+      color: #2a2d35;
+      font-weight: 600;
+      background: #f8f9fc;
+      border-radius: 6px;
+      padding: 5px 14px;
+      border: 1px solid rgba(48,38,130,0.1);
+    }
+
+    .ticker-type {
+      font-family: 'rift-soft', sans-serif;
+      font-size: 0.7em;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .t-bns { background: rgba(255,224,143,0.35); color: #7a5800; }
+    .t-grb { background: rgba(255,61,121,0.12);  color: #c0003d; }
+    .t-ssm { background: rgba(48,38,130,0.12);   color: #302682; }
+    .t-kn  { background: rgba(0,180,160,0.12);   color: #006b5f; }
+
+    /* ── Plot cards ── */
+    .plots-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 800px) { .plots-grid { grid-template-columns: 1fr; } }
+
+    .plot-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(48,38,130,0.08);
+      padding: 22px 22px 16px;
+      border-top: 5px solid #ff3d79;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+    .plot-card:hover {
+      box-shadow: 0 10px 30px rgba(48,38,130,0.16);
+      transform: translateY(-3px);
+    }
+
+    .plot-card.purple-top { border-top-color: #302682; }
+    .plot-card.yellow-top { border-top-color: #ffe08f; }
+
+    .plot-card-title {
+      font-family: 'rift-soft', sans-serif;
+      font-size: 1em;
+      font-weight: 700;
+      color: #302682;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 3px;
+    }
+
+    .plot-card-sub {
+      font-size: 0.82em;
+      color: #5a5d65;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .data-badge {
+      display: inline-block;
+      background: rgba(255,224,143,0.35);
+      color: #7a5800;
+      font-weight: 700;
+      font-size: 0.8em;
+      padding: 1px 7px;
+      border-radius: 4px;
+      margin-left: 4px;
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    canvas.plot-canvas {
+      width: 100%;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .plot-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .leg-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78em;
+      color: #5a5d65;
+      font-weight: 600;
+    }
+
+    .leg-line { width: 22px; height: 3px; border-radius: 2px; }
+    .leg-dot  { width: 9px; height: 9px; border-radius: 50%; }
+
+    /* ── Scroll-triggered fade-in ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .r2 { transition-delay: 0.08s; }
+    .r3 { transition-delay: 0.16s; }
+    .r4 { transition-delay: 0.24s; }
+    .r5 { transition-delay: 0.32s; }
+    .r6 { transition-delay: 0.40s; }
+    .r7 { transition-delay: 0.48s; }
+  </style>
+</head>
+<body>
+
+<div id="page-wrapper">
+
+<!-- Nav -->
+<nav id="nav">
+    <ul>
+        <li><a href="http://kilonovacatcher.in2p3.fr/science">Science</a></li>
+        <li><a href="http://kilonovacatcher.in2p3.fr/faq">FAQ</a></li>
+        <li><a href="http://kilonovacatcher.in2p3.fr/howitworks">How It Works</a></li>
+        <li><a href="http://kilonovacatcher.in2p3.fr/about">About Us</a></li>
+        <li><a href="http://kilonovacatcher.in2p3.fr/login">Login</a></li>
+        <li><a href="http://kilonovacatcher.in2p3.fr/registration">Register</a></li>
+    </ul>
+</nav>
+
+<!-- Header -->
+<section id="header" class="wrapper">
+    <div id="logo">
+        <h1><a href="http://kilonovacatcher.in2p3.fr/"><img class="image" src="./KiloNovaCatcher_files/LOGO_FINAL_J_600.png" alt="KiloNova Catcher"></a></h1>
+        <p>the grandma citizen science website on <span class="purplecol">gravitational wave astronomy</span>.</p>
+        <p class="smaller">supported by <a href="https://grandma.lal.in2p3.fr/">GRANDMA</a> and <a href="https://u-paris.fr/">université de paris</a>.</p>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     HERO  — dark purple, rift-soft headline
+══════════════════════════════════════ -->
+<div class="wrapper style1">
+  <div class="container">
+    <div class="impact-hero">
+      <div class="live-pill reveal"><div class="live-dot"></div> Network Active</div>
+      <h1 class="reveal r2">KNC by the <span>Numbers</span></h1>
+      <p class="reveal r3">Every observation matters. Here's what our global network of citizen astronomers has accomplished — together.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     STAT CARDS  — light grey background
+══════════════════════════════════════ -->
+<div class="wrapper style3">
+  <div class="container">
+
+    <!-- Stat cards are built automatically from KNC_DATA.stats in the script below -->
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <!-- Activity bar chart -->
+    <div class="chart-card reveal r3">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Activity by Year</div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <div class="legend-swatch" style="background:#ffe08f"></div>GCN Circulars
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch" style="background:#5040b8"></div>GW Follow-ups
+          </div>
+        </div>
+      </div>
+      <div class="bar-chart-wrap" id="barChart"></div>
+    </div>
+
+    <!-- Events ticker -->
+    <div class="ticker-wrap reveal r4">
+      <div class="ticker-label">Recent Events</div>
+      <div class="ticker-track" id="tickerTrack"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCIENCE PLOTS  — white background
+══════════════════════════════════════ -->
+<div class="wrapper style2">
+  <div class="container">
+
+    <h2 class="impact-section-title reveal">Science Outputs</h2>
+    <p class="impact-section-sub reveal r2">
+      Lightcurves and sky coverage from KNC follow-up campaigns.
+      <span class="data-badge">Placeholder data</span> — ready for Frederic to integrate real pipeline outputs.
+    </p>
+
+    <div class="plots-grid">
+
+      <div class="plot-card reveal r2">
+        <div class="plot-card-title">Kilonova Lightcurve</div>
+        <div class="plot-card-sub">Multi-band photometry from KNC observers <span class="data-badge">Simulated</span></div>
+        <canvas class="plot-canvas" id="lcCanvas" height="210"></canvas>
+        <div class="plot-legend" id="lcLegend"></div>
+      </div>
+
+      <div class="plot-card reveal r3">
+        <div class="plot-card-title">GRB Afterglow Decay</div>
+        <div class="plot-card-sub">Power-law fading — detections &amp; upper limits <span class="data-badge">Simulated</span></div>
+        <canvas class="plot-canvas" id="agCanvas" height="210"></canvas>
+        <div class="plot-legend" id="agLegend"></div>
+      </div>
+
+      <div class="plot-card purple-top reveal r4">
+        <div class="plot-card-title">Event Sky Coverage</div>
+        <div class="plot-card-sub">KNC observation pointings across GW/GRB events <span class="data-badge">Simulated</span></div>
+        <canvas class="plot-canvas" id="skyCanvas" height="210"></canvas>
+        <div class="plot-legend" id="skyLegend"></div>
+      </div>
+
+      <div class="plot-card yellow-top reveal r5">
+        <div class="plot-card-title">Limiting Magnitude Distribution</div>
+        <div class="plot-card-sub">Detection depth across the network <span class="data-badge">Simulated</span></div>
+        <canvas class="plot-canvas" id="magCanvas" height="210"></canvas>
+        <div class="plot-legend" id="magLegend"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║                                                                      ║
+   ║   KNC IMPACT COUNTER — ALL EDITABLE DATA IS HERE                     ║
+   ║                                                                      ║
+   ║   Anyone on the team can update this file without coding knowledge.  ║
+   ║   Just edit the numbers, text, and data in the KNC_DATA block below. ║
+   ║   Do NOT edit anything past the "MACHINERY" line.                    ║
+   ║                                                                      ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+const KNC_DATA = {
+
+  /* ── STAT CARDS ────────────────────────────────────────────────────────
+     Change "value" for each card. The page animates from 0 to that number.
+     suffix: optional symbol after the number ("+", "%", etc.)
+     desc:   the small grey caption below the label
+     wide:   true = card spans 2 columns (for longer labels)
+  ─────────────────────────────────────────────────────────────────────── */
+  stats: [
+    { icon:'📡', value: 64,   suffix:'',  label:'GCN Circulars',        desc:'Published or contributed since O3' },
+    { icon:'🌍', value: 150,  suffix:'+', label:'Network Members',      desc:'Registered observers across 6 continents' },
+    { icon:'🔭', value: 40,   suffix:'',  label:'Active Contributors',  desc:'Observers responding to live alerts' },
+    { icon:'⏱',  value: 3200, suffix:'',  label:'Observation Hours',    desc:'Total telescope time on transients' },
+    { icon:'🌊', value: 28,   suffix:'',  label:'GW Events Followed Up',
+      desc:'BNS candidates, mass gap events, and sub-threshold triggers — all covered', wide: true },
+    { icon:'📄', value: 1,    suffix:'',  label:'Peer-Reviewed Papers',
+      desc:'Citizen science data contributing to published kilonova limits — with more in preparation', wide: true },
+  ],
+
+  /* ── ACTIVITY BAR CHART ────────────────────────────────────────────────
+     One row per year. gcn = circulars, obs = GW events followed up.
+     To add 2025: copy the last line and update the year and numbers.
+  ─────────────────────────────────────────────────────────────────────── */
+  activityByYear: [
+    { year:'2019', gcn: 4,  obs: 3 },
+    { year:'2020', gcn: 8,  obs: 5 },
+    { year:'2021', gcn: 12, obs: 7 },
+    { year:'2022', gcn: 16, obs: 9 },
+    { year:'2023', gcn: 14, obs: 8 },
+    { year:'2024', gcn: 10, obs: 6 },
+    // { year:'2025', gcn: 18, obs: 11 },  ← remove the // to add this row
+  ],
+
+  /* ── RECENT EVENTS TICKER ──────────────────────────────────────────────
+     Scrolls across the bottom of the stat cards.
+     type options: 'GRB'  'BNS'  'SSM'  'KN'   (controls badge colour)
+     To add an event: copy any line, paste it below, change the fields.
+  ─────────────────────────────────────────────────────────────────────── */
+  recentEvents: [
+    { name:'GRB 251205A', type:'GRB', note:'r=18.35 detected T+10.9hr — KNC GCN #43231' },
+    { name:'S250818k',    type:'BNS', note:'Galaxy-targeted follow-up — AT2025ulz monitored' },
+    { name:'GRB 250702F', type:'GRB', note:'5 KNC telescopes — R=18.1 at T+1.9hr' },
+    { name:'S251112cm',   type:'SSM', note:'Sub-solar mass candidate — 93 Mpc' },
+    { name:'GRB 230307A', type:'KN',  note:'Kilonova confirmed by JWST — z=0.065' },
+    { name:'GRB 250424A', type:'GRB', note:'3-continent multi-site — KNC GCN #40240' },
+    { name:'S240422ed',   type:'BNS', note:'Upper limits published — beyond 8–12″ reach' },
+    { name:'GRB 230812B', type:'GRB', note:'Short GRB z=0.177 — KNC/GRANDMA' },
+    { name:'GRB 251201B', type:'GRB', note:'KNC optical afterglow detection' },
+    { name:'GRB 251126A', type:'GRB', note:'KNC optical afterglow detection' },
+  ],
+
+  /* ── KILONOVA LIGHTCURVE ───────────────────────────────────────────────
+     Replace the points arrays with real KNC photometry from STDPipe.
+     Each point: [day_after_merger, magnitude, error]
+     plotDays / magMin / magMax set the axis range.
+  ─────────────────────────────────────────────────────────────────────── */
+  lightcurve: {
+    plotDays: 10,
+    magMin:   17.5,
+    magMax:   23.0,
+    xlabel:   'Days post-merger',
+    ylabel:   'Magnitude (AB)',
+    note:     'AT2017gfo / Bulla 2023 template — replace with real KNC data',
+    bands: [
+      { name:'g-band', color:'#302682', points:[
+        [0.3,18.7,0.10],[0.8,19.3,0.12],[1.6,20.0,0.09],
+        [2.8,20.9,0.13],[4.5,21.6,0.20],[7.0,22.3,0.30],
+      ]},
+      { name:'r-band', color:'#ff3d79', points:[
+        [0.3,18.2,0.09],[0.8,18.8,0.10],[1.6,19.4,0.08],
+        [2.8,20.2,0.11],[4.5,21.0,0.18],[7.0,21.8,0.28],[9.5,22.4,0.38],
+      ]},
+      { name:'i-band', color:'#e07b00', points:[
+        [0.3,18.6,0.09],[0.8,19.0,0.10],[1.6,19.5,0.10],
+        [2.8,20.0,0.12],[4.5,20.6,0.16],[7.0,21.2,0.22],
+      ]},
+    ]
+  },
+
+  /* ── GRB AFTERGLOW ─────────────────────────────────────────────────────
+     detections:  [hours_post_trigger, magnitude, ±error]
+     upperLimits: [hours_post_trigger, limiting_magnitude]
+     jetBreakHours: where the dashed "jet break" line appears
+  ─────────────────────────────────────────────────────────────────────── */
+  afterglow: {
+    xlabel:'Hours post-trigger', ylabel:'Magnitude r-band',
+    magMin:16, magMax:22.5, tMin:0.05, tMax:20,
+    jetBreakHours: 2.5,
+    detections: [
+      [0.12,17.1,0.08],[0.30,17.6,0.10],[0.70,18.2,0.09],
+      [1.50,18.9,0.12],[3.50,20.1,0.18],[6.00,20.9,0.22],[12.00,21.8,0.35],
+    ],
+    upperLimits: [
+      [0.50,18.5],[2.00,19.5],[8.00,21.5],[15.00,22.2],
+    ],
+  },
+
+  /* ── SKY COVERAGE ──────────────────────────────────────────────────────
+     One entry per telescope pointing.
+     ra  = Right Ascension in degrees (0–360)
+     dec = Declination in degrees (−90 to +90)
+     type: 'grb' = pink dot  |  'gw' = teal dot  |  'ul' = yellow dot
+     To add a pointing: copy any line, paste it below, update ra/dec/type.
+  ─────────────────────────────────────────────────────────────────────── */
+  skyPointings: [
+    { ra:200.3, dec:29.9,  type:'grb' },  // GRB 251205A
+    { ra:200.1, dec:30.1,  type:'grb' },
+    { ra:200.5, dec:29.7,  type:'grb' },
+    { ra:224.0, dec:32.1,  type:'grb' },  // GRB 250702F
+    { ra:223.7, dec:31.8,  type:'grb' },
+    { ra:197.0, dec:-14.1, type:'grb' },  // GRB 250424A
+    { ra:196.8, dec:-13.9, type:'grb' },
+    { ra:60.9,  dec:-75.4, type:'grb' },  // GRB 230307A
+    { ra:42.0,  dec:16.0,  type:'gw'  },  // S250818k
+    { ra:55.0,  dec:18.0,  type:'gw'  },
+    { ra:38.0,  dec:12.0,  type:'gw'  },
+    { ra:48.0,  dec:22.0,  type:'gw'  },
+    { ra:25.0,  dec:24.0,  type:'gw'  },  // S251112cm
+    { ra:40.0,  dec:20.0,  type:'gw'  },
+    { ra:18.0,  dec:28.0,  type:'gw'  },
+    { ra:150.0, dec:20.0,  type:'ul'  },  // Upper limits
+    { ra:270.0, dec:-30.0, type:'ul'  },
+    { ra:310.0, dec:45.0,  type:'ul'  },
+    { ra:90.0,  dec:-10.0, type:'ul'  },
+    { ra:240.0, dec:-55.0, type:'ul'  },
+    // Add more: { ra: ???, dec: ???, type:'grb' },
+  ],
+
+  /* ── LIMITING MAGNITUDE HISTOGRAM ──────────────────────────────────────
+     Paste your list of limiting magnitudes here — one number per observation.
+     Source: the "limmag" column from your STDPipe output CSV.
+     The histogram bins, axis range, and peak labels are all automatic.
+  ─────────────────────────────────────────────────────────────────────── */
+  limitingMagnitudes: [
+    // ← Paste real values here. Current values are placeholders.
+    18.2,18.5,18.8,19.0,19.1,19.2,19.3,19.4,19.4,19.5,
+    19.5,19.6,19.7,19.8,19.8,19.9,20.0,20.0,20.1,20.2,
+    20.3,20.4,20.5,20.6,19.1,19.2,19.3,18.9,19.0,19.6,
+    21.0,21.1,21.2,21.3,21.4,21.4,21.5,21.5,21.6,21.7,
+    21.8,21.9,22.0,20.8,20.9,21.0,21.1,20.5,20.6,20.7,
+    18.3,18.6,18.7,19.5,19.7,20.2,20.3,21.3,21.2,20.0,
+  ],
+
+};
+
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║   MACHINERY — DO NOT EDIT BELOW THIS LINE                           ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+/* Build stat cards */
+(function() {
+  const grid = document.getElementById('statsGrid');
+  KNC_DATA.stats.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'stat-box reveal' + (i>0?' r'+Math.min(i+1,7):'') + (s.wide?' wide':'');
+    const sfx = s.suffix ? ` data-suffix="${s.suffix}"` : '';
+    div.innerHTML = `<span class="stat-icon">${s.icon}</span>
+      <div class="stat-number" data-target="${s.value}"${sfx}>0</div>
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-desc">${s.desc}</div>`;
+    grid.appendChild(div);
+  });
+})();
+
+/* Build bar chart */
+(function() {
+  const data=KNC_DATA.activityByYear;
+  const maxG=Math.max(...data.map(d=>d.gcn));
+  const maxO=Math.max(...data.map(d=>d.obs));
+  const wrap=document.getElementById('barChart');
+  data.forEach(d=>{
+    const col=document.createElement('div'); col.className='bar-col';
+    col.innerHTML=`<div class="bar-fill gcn-bar" style="height:${d.gcn/maxG*100}%"></div>
+      <div class="bar-fill obs-bar" style="height:${d.obs/maxO*100}%"></div>
+      <div class="bar-year">${d.year}</div>`;
+    wrap.appendChild(col);
+  });
+  setTimeout(()=>{ document.querySelectorAll('.bar-fill').forEach((b,i)=>setTimeout(()=>{b.style.transform='scaleY(1)';},i*55+100)); },700);
+})();
+
+/* Build ticker */
+(function() {
+  const tm={GRB:'t-grb',BNS:'t-bns',SSM:'t-ssm',KN:'t-kn'};
+  const track=document.getElementById('tickerTrack');
+  [...KNC_DATA.recentEvents,...KNC_DATA.recentEvents].forEach(e=>{
+    const el=document.createElement('div'); el.className='ticker-item';
+    el.innerHTML=`<span class="ticker-type ${tm[e.type]||'t-grb'}">${e.type}</span>${e.name} — ${e.note}`;
+    track.appendChild(el);
+  });
+})();
+
+/* Reveal + counters */
+function revealAll(){document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));}
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.05,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+/* Run revealAll immediately (after builders), then twice more as fallback.
+   This covers: elements in viewport on load, slow renders, and dynamic elements. */
+revealAll();
+setTimeout(revealAll,300);
+setTimeout(revealAll,800);
+
+function animateCounter(el){
+  const target=+el.dataset.target,suffix=el.dataset.suffix||'',dur=1800,start=performance.now();
+  const ease=t=>1-Math.pow(1-t,3);
+  const step=now=>{const p=Math.min((now-start)/dur,1);el.textContent=Math.round(ease(p)*target).toLocaleString()+(p===1?suffix:'');if(p<1)requestAnimationFrame(step);};
+  requestAnimationFrame(step);
+}
+window.addEventListener('load',()=>setTimeout(()=>document.querySelectorAll('[data-target]').forEach(animateCounter),400));
+
+/* Canvas palette */
+const P={purple:'#302682',purplem:'#5040b8',pink:'#ff3d79',yellow:'#ffe08f',teal:'#00b8a0',orange:'#e07b00',grey:'#e8e8ec',text:'#5a5d65',dark:'#2a2d35'};
+
+function axes(ctx,W,H,pad,xl,yl){
+  ctx.strokeStyle=P.grey;ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,H-pad);ctx.lineTo(W-pad/2,H-pad);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pad,H-pad);ctx.lineTo(pad,pad/2);ctx.stroke();
+  ctx.fillStyle=P.text;ctx.font='11px Source Sans Pro,sans-serif';
+  ctx.textAlign='center';ctx.fillText(xl,W/2,H-3);
+  ctx.save();ctx.translate(11,H/2);ctx.rotate(-Math.PI/2);ctx.fillText(yl,0,0);ctx.restore();
+}
+function gridLines(ctx,W,H,pad,n){
+  ctx.strokeStyle='rgba(48,38,130,0.06)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  for(let i=1;i<=n;i++){const y=H-pad-i*(H-pad*1.5)/n;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad/2,y);ctx.stroke();}
+  ctx.setLineDash([]);
+}
+
+/* Plot 1: Lightcurve */
+(function(){
+  const cv=document.getElementById('lcCanvas');
+  const W=cv.offsetWidth||500,H=210; cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d'),d=KNC_DATA.lightcurve,pad=50;
+  const pW=W-pad-pad/2,pH=H-pad-pad/2;
+  const tx=t=>pad+t/d.plotDays*pW;
+  const ty=m=>pad/2+(m-d.magMin)/(d.magMax-d.magMin)*pH;
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  gridLines(ctx,W,H,pad,5);axes(ctx,W,H,pad,d.xlabel,d.ylabel);
+  ctx.fillStyle=P.text;ctx.font='10px Source Sans Pro,sans-serif';
+  ctx.textAlign='right';
+  for(let m=Math.ceil(d.magMin)+1;m<d.magMax;m+=1)ctx.fillText(m,pad-5,ty(m)+3);
+  ctx.textAlign='center';
+  for(let t=0;t<=d.plotDays;t+=2)ctx.fillText(t,tx(t),H-pad+13);
+  d.bands.forEach(band=>{
+    const pts=band.points.slice().sort((a,b)=>a[0]-b[0]);
+    ctx.beginPath();ctx.strokeStyle=band.color;ctx.lineWidth=2.5;
+    pts.forEach(([t,m],i)=>i===0?ctx.moveTo(tx(t),ty(m)):ctx.lineTo(tx(t),ty(m)));
+    ctx.stroke();
+    pts.forEach(([t,m,e])=>{
+      const x=tx(t),y=ty(m);
+      ctx.strokeStyle=band.color;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(x,ty(m-e));ctx.lineTo(x,ty(m+e));ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x-3,ty(m-e));ctx.lineTo(x+3,ty(m-e));ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x-3,ty(m+e));ctx.lineTo(x+3,ty(m+e));ctx.stroke();
+      ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fillStyle=band.color;ctx.fill();
+    });
+  });
+  const leg=document.getElementById('lcLegend');
+  d.bands.forEach(b=>leg.innerHTML+=`<div class="leg-item"><div class="leg-line" style="background:${b.color}"></div>${b.name}</div>`);
+  if(d.note)leg.innerHTML+=`<div class="leg-item" style="font-size:0.72em;color:${P.text};margin-left:4px">${d.note}</div>`;
+})();
+
+/* Plot 2: Afterglow */
+(function(){
+  const cv=document.getElementById('agCanvas');
+  const W=cv.offsetWidth||500,H=210;cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d'),d=KNC_DATA.afterglow,pad=50;
+  const pW=W-pad-pad/2,pH=H-pad-pad/2;
+  const tx=t=>pad+Math.log10(t/d.tMin)/Math.log10(d.tMax/d.tMin)*pW;
+  const ty=m=>pad/2+(m-d.magMin)/(d.magMax-d.magMin)*pH;
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  gridLines(ctx,W,H,pad,4);axes(ctx,W,H,pad,d.xlabel,d.ylabel);
+  [0.1,0.3,1,3,10].forEach(t=>{ctx.fillStyle=P.text;ctx.font='10px Source Sans Pro,sans-serif';ctx.textAlign='center';ctx.fillText(t,tx(t),H-pad+13);});
+  ctx.textAlign='right';
+  for(let m=Math.ceil(d.magMin)+1;m<d.magMax;m++)ctx.fillText(m,pad-5,ty(m)+3);
+  const dets=d.detections.slice().sort((a,b)=>a[0]-b[0]);
+  if(dets.length>1){
+    const tB=d.jetBreakHours;
+    const i1=0,i2=Math.floor(dets.length/2),i3=dets.length-1;
+    const a1=(dets[i2][1]-dets[i1][1])/(2.5*(Math.log10(dets[i2][0])-Math.log10(dets[i1][0])));
+    const a2=(dets[i3][1]-dets[i2][1])/(2.5*(Math.log10(dets[i3][0])-Math.log10(dets[i2][0])));
+    const m0=dets[i1][1]-2.5*a1*Math.log10(dets[i1][0]/d.tMin);
+    const mag=t=>t<tB?m0+2.5*a1*Math.log10(t/d.tMin):m0+2.5*a1*Math.log10(tB/d.tMin)+2.5*a2*Math.log10(t/tB);
+    ctx.beginPath();ctx.strokeStyle=P.pink;ctx.lineWidth=2.5;
+    for(let i=0;i<200;i++){const t=d.tMin*Math.pow(d.tMax/d.tMin,i/199);i===0?ctx.moveTo(tx(t),ty(mag(t))):ctx.lineTo(tx(t),ty(mag(t)));}
+    ctx.stroke();
+    const xB=tx(tB);
+    ctx.strokeStyle='rgba(48,38,130,0.3)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(xB,pad/2);ctx.lineTo(xB,H-pad);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=P.purplem;ctx.font='9px Source Sans Pro,sans-serif';ctx.textAlign='center';
+    ctx.fillText('jet break',xB,pad/2-4);
+  }
+  dets.forEach(([t,m,e])=>{
+    const x=tx(t),y=ty(m);
+    ctx.strokeStyle=P.purple;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(x,ty(m-e));ctx.lineTo(x,ty(m+e));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x-3,ty(m-e));ctx.lineTo(x+3,ty(m-e));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x-3,ty(m+e));ctx.lineTo(x+3,ty(m+e));ctx.stroke();
+    ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fillStyle=P.purple;ctx.fill();
+  });
+  d.upperLimits.forEach(([t,m])=>{const x=tx(t),y=ty(m);ctx.fillStyle=P.teal;ctx.beginPath();ctx.moveTo(x,y+9);ctx.lineTo(x-5.5,y);ctx.lineTo(x+5.5,y);ctx.closePath();ctx.fill();});
+  document.getElementById('agLegend').innerHTML=`<div class="leg-item"><div class="leg-line" style="background:${P.pink}"></div>Best-fit model</div><div class="leg-item"><div class="leg-dot" style="background:${P.purple}"></div>KNC detection</div><div class="leg-item"><div class="leg-dot" style="background:${P.teal}"></div>Upper limit ▼</div>`;
+})();
+
+/* Plot 3: Skymap */
+(function(){
+  const cv=document.getElementById('skyCanvas');
+  const W=cv.offsetWidth||500,H=210;cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d'),pad=44,pW=W-pad-pad/2,pH=H-pad*1.1;
+  ctx.fillStyle='#09071A';ctx.fillRect(0,0,W,H);
+  const tx=ra=>pad+(ra/360)*pW,ty=dec=>pad/2+(-dec+90)/180*pH;
+  ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=0.5;
+  [-60,-30,0,30,60].forEach(d=>{ctx.beginPath();ctx.moveTo(tx(0),ty(d));ctx.lineTo(tx(360),ty(d));ctx.stroke();});
+  [0,60,120,180,240,300,360].forEach(r=>{ctx.beginPath();ctx.moveTo(tx(r),ty(-90));ctx.lineTo(tx(r),ty(90));ctx.stroke();});
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='9px Source Sans Pro,sans-serif';
+  ctx.textAlign='center';['0h','6h','12h','18h','24h'].forEach((l,i)=>ctx.fillText(l,tx(i*90),H-5));
+  ctx.textAlign='right';[60,30,0,-30,-60].forEach(d=>ctx.fillText(d+'°',pad-4,ty(d)+3));
+  const cmap={grb:P.pink,gw:P.teal,ul:'rgba(255,224,143,0.7)'};
+  const smap={grb:4.5,gw:4,ul:2.5};
+  KNC_DATA.skyPointings.forEach(pt=>{
+    const x=tx(((pt.ra%360)+360)%360),y=ty(pt.dec);
+    if(x<pad||x>W-pad/2||y<pad/2||y>H-pad)return;
+    ctx.beginPath();ctx.arc(x,y,smap[pt.type]||3,0,Math.PI*2);ctx.fillStyle=cmap[pt.type]||P.teal;ctx.fill();
+  });
+  document.getElementById('skyLegend').innerHTML=`<div class="leg-item"><div class="leg-dot" style="background:${P.pink}"></div>GRB pointing</div><div class="leg-item"><div class="leg-dot" style="background:${P.teal}"></div>GW pointing</div><div class="leg-item"><div class="leg-dot" style="background:rgba(255,224,143,0.9)"></div>Upper limit</div>`;
+})();
+
+/* Plot 4: Magnitude histogram */
+(function(){
+  const cv=document.getElementById('magCanvas');
+  const W=cv.offsetWidth||500,H=210;cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d'),pad=50,mags=KNC_DATA.limitingMagnitudes;
+  const magStart=Math.floor(Math.min(...mags))-0.5,magEnd=Math.ceil(Math.max(...mags))+0.5,nBins=14;
+  const binW=(magEnd-magStart)/nBins,pW=W-pad-pad/2,pH=H-pad-pad/2;
+  const bins=Array.from({length:nBins},(_,i)=>({m:magStart+(i+0.5)*binW,n:mags.filter(m=>m>=magStart+i*binW&&m<magStart+(i+1)*binW).length}));
+  const maxN=Math.max(...bins.map(b=>b.n),1);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  gridLines(ctx,W,H,pad,4);axes(ctx,W,H,pad,'Limiting magnitude (r-band)','N observations');
+  const bx=m=>pad+(m-magStart)/(magEnd-magStart)*pW;
+  const by=n=>H-pad-n/maxN*pH;
+  const bwPx=pW/nBins-2;
+  bins.forEach(b=>{
+    const x=bx(b.m)-bwPx/2,y=by(b.n),h=H-pad-y;
+    if(h<=0)return;
+    const g=ctx.createLinearGradient(0,y,0,H-pad);g.addColorStop(0,P.purple);g.addColorStop(1,'rgba(80,64,184,0.35)');
+    ctx.fillStyle=g;ctx.fillRect(x,y,bwPx,h);
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=0.5;ctx.strokeRect(x,y,bwPx,h);
+  });
+  ctx.fillStyle=P.text;ctx.font='10px Source Sans Pro,sans-serif';ctx.textAlign='center';
+  for(let m=Math.ceil(magStart)+1;m<magEnd;m++)ctx.fillText(m,bx(m),H-pad+13);
+  ctx.textAlign='right';
+  [Math.round(maxN*0.25),Math.round(maxN*0.5),Math.round(maxN*0.75),maxN].forEach(n=>ctx.fillText(n,pad-5,by(n)+3));
+  const p1=bins.reduce((a,b)=>b.m<20&&b.n>a.n?b:a,bins[0]);
+  const p2=bins.reduce((a,b)=>b.m>=20&&b.n>a.n?b:a,bins[bins.length-1]);
+  ctx.font='9px Source Sans Pro,sans-serif';ctx.textAlign='center';
+  if(p1.n>2){ctx.fillStyle=P.pink;ctx.fillText('amateur',bx(p1.m),by(p1.n)+13);}
+  if(p2.n>2){ctx.fillStyle=P.purplem;ctx.fillText('robotic',bx(p2.m),by(p2.n)+13);}
+  document.getElementById('magLegend').innerHTML=`<div class="leg-item"><div class="leg-dot" style="background:${P.purple}"></div>All KNC observations (n=${mags.length})</div><div class="leg-item" style="font-size:0.72em;color:${P.text}">Bimodal: amateur (~19–20 mag) + robotic (>21 mag)</div>`;
+})();
+  </script>
+<!-- Partner Logos -->
+<div class="container">
+    <div class="row">
+        <div class="col-12-medium" style="margin:auto; text-align:center;">
+            <section>
+                <p>
+                    <a href="https://u-paris.fr/"><img src="./KiloNovaCatcher_files/UniversiteParis.png" alt="Université de Paris"></a>
+                    <a href="https://www.ijclab.in2p3.fr/"><img src="./KiloNovaCatcher_files/IJCLab.png" alt="IJCLab"></a>
+                </p>
+            </section>
+        </div>
+    </div>
+    <div class="row petitfooter">
+        <div class="col-12-medium" style="margin:auto; text-align:center;">
+            <p style="margin:auto; text-align:center;">
+                <a href="https://www.cnrs.fr/" title="cnrs.fr" target="_blank"><img src="./KiloNovaCatcher_files/logo_cnrs.png" alt="Logo CNRS"></a>&nbsp;&nbsp;
+                <a href="https://www.oca.eu/fr/" title="OCA" target="_blank"><img src="./KiloNovaCatcher_files/logo_oca.png" alt="Logo OCA"></a>&nbsp;&nbsp;
+                <a href="https://pnhe.cnrs.fr/" title="PNHE" target="_blank"><img src="./KiloNovaCatcher_files/logo_pnhe.png" alt="Logo PNHE"></a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<section id="footer">
+    <div class="container">
+        <div id="copyright">
+            <ul>
+                <li>© KilonovaCatcher.</li>
+                <li>Development by <a href="https://orcid.org/0009-0004-9687-3275">Cristina Andrade</a></li>
+                <li>Design, logo and color by <a href="https://jenniferturpin.fr/">Jennifer Turpin</a>. Template by <a href="http://html5up.net/">HTML5 UP</a></li>
+                <li>Thanks to <a href="https://u-paris.fr/">Université de PARIS</a> and <a href="https://www.ijclab.in2p3.fr/">IJCLAB</a></li>
+                <li>Additional thanks to Damien Turpin, Sarah Antier and Sebastien Gregoire</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+</div><!-- end #page-wrapper -->
+
+<!-- Scripts (same as all other site pages) -->
+<script src="./KiloNovaCatcher_files/jquery.min.js"></script>
+<script src="./KiloNovaCatcher_files/jquery.dropotron.min.js"></script>
+<script src="./KiloNovaCatcher_files/browser.min.js"></script>
+<script src="./KiloNovaCatcher_files/breakpoints.min.js"></script>
+<script src="./KiloNovaCatcher_files/util.js"></script>
+<script src="./KiloNovaCatcher_files/main.js"></script>
+
+<!-- Mobile Nav Panel -->
+<div id="navPanel">
+    <nav>
+        <a class="link depth-0" href="http://kilonovacatcher.in2p3.fr/science"><span class="indent-0"></span>Science</a>
+        <a class="link depth-0" href="http://kilonovacatcher.in2p3.fr/faq"><span class="indent-0"></span>FAQ</a>
+        <a class="link depth-0" href="http://kilonovacatcher.in2p3.fr/howitworks"><span class="indent-0"></span>How It Works</a>
+        <a class="link depth-0" href="http://kilonovacatcher.in2p3.fr/about"><span class="indent-0"></span>About Us</a>
+        <a class="link depth-0" href="http://kilonovacatcher.in2p3.fr/login"><span class="indent-0"></span>Login</a>
+        <a class="link depth-0" href="http://kilonovacatcher.in2p3.fr/registration"><span class="indent-0"></span>Register</a>
+    </nav>
+</div>
+
+</body>
+</html>

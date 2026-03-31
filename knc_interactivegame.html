@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KNC — Interactive Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --purple:        #302682;
+      --purple-mid:    #4A3AA8;
+      --purple-light:  #7B6FD4;
+      --purple-dark:   #1E1655;
+      --pink:          #ff3d79;
+      --pink-light:    #ff6d99;
+      --yellow:        #ffe08f;
+      --yellow-dim:    #C9A020;
+      --bg:            #09071A;
+      --bg2:           #100E24;
+      --bg3:           #18153A;
+      --text:          #EDE8FF;
+      --muted:         #7A6FAA;
+      --border:        rgba(48,38,130,0.45);
+      --border-hover:  rgba(123,111,212,0.6);
+      --success:       #3FCFC8;
+      --warning:       #ffe08f;
+      --danger:        #ff3d79;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+    #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+    /* ── KNC site header ── */
+    .knc-site-header {
+      position: relative; z-index: 2;
+      text-align: center; padding: 36px 2rem 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .knc-logo-wrap { display: inline-block; position: relative; margin-bottom: 1rem; }
+    .knc-logo-wrap::before {
+      content: ''; position: absolute; inset: -24px; border-radius: 50%;
+      background: radial-gradient(ellipse at center,
+        rgba(255,224,143,0.32) 0%, rgba(255,224,143,0.12) 45%, rgba(255,224,143,0) 72%);
+      pointer-events: none; animation: halo-pulse 4s ease-in-out infinite;
+    }
+    @keyframes halo-pulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.07)} }
+    .knc-logo-wrap img {
+      display: block; max-width: 240px; height: auto;
+      position: relative; z-index: 1;
+      filter: drop-shadow(0 0 14px rgba(255,224,143,0.4));
+    }
+    .knc-nav {
+      display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+      font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .knc-nav a { color: rgba(237,232,255,0.5); text-decoration: none; transition: color 0.2s; padding: 0.25rem 0; border-bottom: 2px solid transparent; }
+    .knc-nav a:hover { color: var(--yellow); }
+    .knc-nav a.active { color: var(--yellow); border-bottom-color: rgba(255,224,143,0.4); }
+
+    /* ── Landing / narrative section ── */
+    .landing-section {
+      position: relative; z-index: 1;
+      margin: 0 auto;
+      padding: 56px 2rem 48px; text-align: center;
+      border-bottom: 1px solid var(--border);
+      transition: opacity 0.6s ease, max-height 0.8s ease;
+      max-height: 9999px; overflow: hidden;
+    }
+    .landing-section.collapsing { opacity: 0; max-height: 0; padding: 0; border: none; }
+    .landing-section .live-pill { margin-bottom: 1.5rem; }
+
+    /* ── Live pill ── */
+    .live-pill { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink-light); border: 1px solid rgba(255,61,121,0.3); background: rgba(255,61,121,0.07); border-radius: 99px; padding: 0.3rem 0.9rem; margin-bottom: 1.25rem; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 6px var(--pink); animation: blink 2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+    .sim-header { position: relative; z-index: 1; text-align: center; padding: 48px 2rem 40px; border-bottom: 1px solid var(--border); }
+    .sim-header h1 { font-size: clamp(2rem,5vw,3.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+    .sim-header h1 em { font-style: normal; background: linear-gradient(100deg, var(--yellow), var(--pink-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .sim-header p { color: var(--muted); font-size: 0.95rem; max-width: 500px; margin: 0 auto; line-height: 1.65; }
+    .landing-section h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    .landing-section h2 em { font-style: normal; background: linear-gradient(100deg, var(--yellow), var(--pink-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .landing-section p { font-size: 1.05rem; color: rgba(237,232,255,0.75); line-height: 1.75; max-width: 580px; margin: 0 auto 1.25rem; }
+    .landing-section p strong { color: var(--yellow); font-weight: 600; }
+    .landing-cta { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; letter-spacing: 0.05em; }
+
+    /* ── Hero game cards ── */
+    .game-hero {
+      position: relative; z-index: 1;
+      display: flex; gap: 20px; justify-content: center;
+      padding: 3rem 1.5rem 2.5rem; margin: 0 auto; flex-wrap: wrap;
+      transition: opacity 0.6s ease, max-height 0.8s ease;
+      max-height: 9999px; overflow: hidden;
+    }
+    .game-hero.collapsing { opacity: 0; max-height: 0; padding: 0; }
+    .game-card {
+      flex: 1; min-width: 280px; max-width: 420px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2.25rem 2rem;
+      cursor: pointer; transition: all 0.3s ease;
+      text-align: left; position: relative; overflow: hidden;
+    }
+    .game-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; opacity: 0.5; transition: opacity 0.3s; }
+    .game-card.card-alert::before { background: linear-gradient(90deg, var(--purple), var(--pink)); }
+    .game-card.card-bogus::before { background: linear-gradient(90deg, var(--success), var(--purple-light)); }
+    .game-card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(48,38,130,0.35); }
+    .game-card:hover::before { opacity: 1; }
+    .game-card-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
+    .game-card-label { font-family: 'DM Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-bottom: 0.4rem; }
+    .game-card-title { font-size: 1.35rem; font-weight: 800; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
+    .game-card-desc { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: rgba(237,232,255,0.65); line-height: 1.7; margin-bottom: 1rem; }
+    .game-card-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--success); border: 1px solid rgba(63,207,200,0.3); background: rgba(63,207,200,0.07); border-radius: 99px; padding: 0.3rem 0.85rem; margin-bottom: 1rem; }
+    .game-card-start { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--yellow); letter-spacing: 0.05em; }
+
+    /* ── Slim browser tab bar ── */
+    .game-tabs-bar {
+      display: none;
+      position: relative; z-index: 1;
+      max-width: 900px; margin: 0 auto;
+      padding: 1.25rem 1.5rem 0; gap: 8px;
+      /* Fade in smoothly */
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+    .game-tabs-bar.visible { display: flex; }
+    .game-tabs-bar.visible.ready { opacity: 1; }
+    .game-slim-tab {
+      flex: 1; display: flex; align-items: center; gap: 0.7rem;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-bottom: none; border-radius: 10px 10px 0 0;
+      padding: 0.85rem 1.4rem;
+      cursor: pointer; transition: all 0.25s ease;
+      font-size: 0.92rem; font-weight: 700; position: relative;
+    }
+    .game-slim-tab .slim-icon { font-size: 1.1rem; }
+    .game-slim-tab .slim-name { flex: 1; }
+    .game-slim-tab.slim-active { background: var(--bg3); border-color: var(--purple-light); color: var(--text); }
+    .game-slim-tab.slim-inactive { color: var(--muted); }
+    .game-slim-tab.slim-inactive:hover { border-color: var(--border-hover); color: var(--text); }
+
+    /* ── Side-by-side Q layout (data ref left, question right) ── */
+    .q-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 700px) { .q-layout { grid-template-columns: 1fr; } }
+
+    /* ── Data reference panel (left column) ── */
+    .data-ref-panel {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.2rem 1.4rem;
+      display: none; /* JS adds .visible */
+      position: sticky; top: 12px;
+    }
+    .data-ref-panel.visible { display: block; }
+    .data-ref-header {
+      font-family: 'DM Mono', monospace; font-size: 0.8rem;
+      font-weight: 600; color: var(--text);
+      margin-bottom: 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .data-ref-back {
+      font-family: 'DM Mono', monospace; font-size: 0.72rem;
+      color: var(--purple-light); cursor: pointer;
+      text-decoration: underline; white-space: nowrap;
+    }
+    /* Triplet — stacked vertically in sidebar */
+    .data-ref-triplet {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+      margin-bottom: 0.85rem;
+    }
+    .data-ref-frame {
+      aspect-ratio: 1; border-radius: 7px; overflow: hidden;
+      border: 1px solid var(--border); position: relative;
+      background: var(--bg);
+    }
+    .data-ref-frame canvas { display: block; width: 100%; height: 100%; }
+    .data-ref-frame-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      font-family: 'DM Mono', monospace; font-size: 0.62rem;
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+      background: linear-gradient(transparent, rgba(9,7,26,0.9)); padding: 3px 5px;
+    }
+    .data-ref-meta {
+      font-family: 'DM Mono', monospace; font-size: 0.8rem;
+      line-height: 1.8; color: rgba(237,232,255,0.7);
+    }
+    .data-ref-meta strong { color: var(--pink-light); }
+    .data-ref-meta .ref-note { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.6; }
+
+    /* ── Font size fixes for all Game 2 small text ── */
+    .rb-card-title { font-family: 'DM Mono', monospace; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .rb-card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .triplet-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 5px 9px; font-family: 'DM Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(237,232,255,0.7); background: linear-gradient(transparent, rgba(9,7,26,0.85)); }
+    .meta-strip { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; font-family: 'DM Mono', monospace; font-size: 0.85rem; line-height: 2; margin-bottom: 1.25rem; }
+    .meta-key { color: var(--pink-light); min-width: 130px; flex-shrink: 0; font-size: 0.85rem; }
+    .meta-val { color: var(--text); font-size: 0.85rem; }
+    .decision-prompt { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; }
+    .decision-sub { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; line-height: 1.75; }
+    .ml-bar-header { display: flex; justify-content: space-between; align-items: center; font-family: 'DM Mono', monospace; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.65rem; }
+    .ml-agreement { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--muted); margin-top: 0.6rem; line-height: 1.7; }
+    .ml-agreement .agree   { color: var(--success); font-weight: 500; }
+    .ml-agreement .disagree{ color: var(--yellow);  font-weight: 500; }
+    .outcome-text { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--muted); max-width: 540px; margin: 0 auto 1.25rem; line-height: 1.9; }
+    .outcome-fact { display: inline-block; background: rgba(48,38,130,0.2); border: 1px solid rgba(123,111,212,0.3); border-radius: 10px; padding: 1rem 1.4rem; font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--muted); line-height: 1.8; max-width: 540px; }
+    .outcome-fact strong { color: var(--purple-light); }
+    .gcn-ticker { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 1rem; margin-bottom: 1.25rem; overflow: hidden; font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+    .score-cell-label { font-family: 'DM Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 0.35rem; }
+    .ticker-type { font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .rb-final-msg { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--muted); max-width: 480px; margin: 0 auto 2rem; line-height: 1.9; }
+    .ml-agree-label { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .plot-legend { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+    .leg-item { display: flex; align-items: center; gap: 0.4rem; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+    .leg-line  { width: 22px; height: 2.5px; border-radius: 2px; flex-shrink: 0; }
+    @media (max-width: 480px) { .data-ref-panel { position: static; } }
+
+    .sim-container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .score-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2rem; }
+    .score-cell { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.25rem; position: relative; overflow: hidden; }
+    .score-cell::after { content: ''; position: absolute; top: 0; left: 14px; right: 14px; height: 2px; border-radius: 0 0 2px 2px; opacity: 0.7; }
+    .score-cell.c-yellow::after { background: var(--yellow); }
+    .score-cell.c-pink::after   { background: var(--pink); }
+    .score-cell.c-teal::after   { background: var(--success); }
+    .score-cell-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 0.35rem; }
+    .score-cell-value { font-family: 'DM Mono', monospace; font-size: 1.4rem; font-weight: 500; line-height: 1; }
+    .score-cell.c-yellow .score-cell-value { color: var(--yellow); }
+    .score-cell.c-pink   .score-cell-value { color: var(--pink-light); }
+    .score-cell.c-teal   .score-cell-value { color: var(--success); }
+
+    .progress-strip { display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .prog-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: 1px solid var(--border); transition: all 0.3s ease; flex-shrink: 0; }
+    .prog-dot.done    { background: var(--pink); border-color: var(--pink); }
+    .prog-dot.current { background: var(--yellow); border-color: var(--yellow); box-shadow: 0 0 8px rgba(255,224,143,0.6); transform: scale(1.35); }
+    .prog-label { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); margin-left: 0.75rem; white-space: nowrap; }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; }
+    .step-item { display: flex; align-items: center; gap: 0.5rem; font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); transition: color 0.3s; }
+    .step-item.active { color: var(--purple-light); }
+    .step-item.done   { color: var(--pink-light); }
+    .step-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; background: var(--bg3); border: 1px solid var(--border); flex-shrink: 0; transition: all 0.3s; }
+    .step-item.active .step-dot { background: var(--purple); border-color: var(--purple-light); color: #fff; box-shadow: 0 0 0 4px rgba(48,38,130,0.35); }
+    .step-item.done   .step-dot { background: var(--pink); border-color: var(--pink-light); color: #fff; }
+    .step-line { width: 40px; height: 2px; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
+    .step-line.done { background: var(--pink); }
+
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 18px; padding: 1.75rem 2rem; margin-bottom: 1.25rem; position: relative; overflow: hidden; animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1); }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--purple), var(--pink), var(--yellow)); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .card-title { font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .gcn-ticker span { display: inline-block; animation: scrolltick 22s linear infinite; }
+    .gcn-ticker .hl { color: var(--yellow); }
+    .gcn-ticker .hl-pink { color: var(--pink-light); }
+    @keyframes scrolltick { 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }
+
+    .alert-box { background: var(--bg3); border: 1px solid rgba(48,38,130,0.5); border-radius: 12px; padding: 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.75rem; line-height: 1.9; }
+    .alert-label { font-size: 0.72rem; color: var(--yellow); font-weight: 500; letter-spacing: 0.08em; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.6rem; }
+    .blink-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 5px var(--yellow); animation: blink 1.2s ease-in-out infinite; }
+    .alert-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .alert-key { color: var(--pink-light); min-width: 140px; flex-shrink: 0; }
+    .alert-val { color: var(--text); }
+    .pri-high    { color: var(--yellow);       font-weight: 700; }
+    .pri-med     { color: var(--purple-light); font-weight: 700; }
+    .pri-retract { color: var(--pink);         font-weight: 700; }
+
+    .skymap-wrap { margin-top: 1.25rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1rem 0.5rem; }
+    .skymap-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 0.6rem; display: flex; align-items: center; justify-content: space-between; }
+    .skymap-legend { display: flex; gap: 1rem; }
+    .skymap-leg-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; color: var(--muted); }
+    .leg-swatch { width: 10px; height: 10px; border-radius: 2px; }
+    #skymap { width: 100%; display: block; border-radius: 8px; cursor: crosshair; }
+
+    .conditions-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(175px,1fr)); gap: 1rem; }
+    .condition-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; transition: border-color 0.2s; }
+    .condition-item:hover { border-color: var(--border-hover); }
+    .condition-item label { display: block; font-family: 'DM Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.5rem; }
+    .condition-val { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+    .condition-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.07); overflow: hidden; }
+    .condition-bar-fill { height: 100%; border-radius: 2px; }
+    .good .condition-val      { color: var(--success); }
+    .good .condition-bar-fill { background: linear-gradient(90deg, var(--purple-light), var(--success)); }
+    .okay .condition-val      { color: var(--yellow); }
+    .okay .condition-bar-fill { background: linear-gradient(90deg, var(--purple-light), var(--yellow)); }
+    .poor .condition-val      { color: var(--pink); }
+    .poor .condition-bar-fill { background: linear-gradient(90deg, var(--purple), var(--pink)); }
+
+    .btn { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; border-radius: 10px; border: 1px solid transparent; padding: 0.85rem 1.75rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease; letter-spacing: 0.02em; }
+    .btn-primary { background: linear-gradient(135deg, var(--purple), var(--purple-mid)); color: #fff; border-color: var(--purple-mid); box-shadow: 0 4px 20px rgba(48,38,130,0.35); }
+    .btn-primary:hover { background: linear-gradient(135deg, var(--purple-mid), var(--purple-light)); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(48,38,130,0.5); }
+    .btn-observe { background: linear-gradient(135deg, var(--purple), var(--pink)); color: #fff; border: none; box-shadow: 0 4px 20px rgba(255,61,121,0.25); }
+    .btn-observe:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,61,121,0.4); }
+    .btn-ghost { background: var(--bg3); color: var(--text); border-color: var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+
+    .decision-section { text-align: center; padding: 0.5rem 0; }
+    .decision-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    .outcome-panel { border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 1.25rem; animation: fadeUp 0.4s ease; position: relative; overflow: hidden; }
+    .outcome-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .outcome-panel.success { background: rgba(63,207,200,0.07); border: 1px solid rgba(63,207,200,0.25); }
+    .outcome-panel.success::before { background: linear-gradient(90deg, var(--success), var(--purple-light)); }
+    .outcome-panel.missed  { background: rgba(255,61,121,0.07); border: 1px solid rgba(255,61,121,0.25); }
+    .outcome-panel.missed::before  { background: linear-gradient(90deg, var(--pink), var(--purple)); }
+    .outcome-panel.skip    { background: rgba(255,224,143,0.07); border: 1px solid rgba(255,224,143,0.25); }
+    .outcome-panel.skip::before    { background: linear-gradient(90deg, var(--yellow), var(--pink)); }
+    .outcome-icon { font-size: 2.8rem; margin-bottom: 0.85rem; }
+    .outcome-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; }
+
+    .final-screen { text-align: center; padding: 1rem 0; }
+    .final-screen h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .final-screen h2 em { font-style: normal; background: linear-gradient(100deg, var(--yellow), var(--pink-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .final-score-box { display: inline-block; background: var(--bg3); border: 1px solid var(--border); border-radius: 18px; padding: 2rem 3.5rem; margin: 1.5rem 0; position: relative; overflow: hidden; }
+    .final-score-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--purple), var(--pink), var(--yellow)); }
+    .final-big-num { font-family: 'DM Mono', monospace; font-size: 3.5rem; font-weight: 500; color: var(--yellow); line-height: 1; margin-bottom: 0.35rem; }
+    .final-big-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .rank-pill { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink-light); border: 1px solid rgba(255,61,121,0.3); background: rgba(255,61,121,0.07); border-radius: 99px; padding: 0.35rem 1rem; margin-bottom: 1.25rem; }
+    .final-msg { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); max-width: 460px; margin: 0 auto 2rem; line-height: 1.8; }
+    .final-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-join { background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; border: none; border-radius: 10px; padding: 0.95rem 2rem; font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 20px rgba(255,61,121,0.25); }
+    .btn-join:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,61,121,0.4); }
+    .btn-replay { background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 0.9rem 1.75rem; font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-replay:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+
+    .text-center { text-align: center; }
+    .hidden { display: none !important; }
+
+    /* ── Game selector ── */
+
+    /* ── Transient classifier game ── */
+    .rb-score-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2rem; }
+
+    .rb-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 18px; padding: 1.75rem 2rem;
+      margin-bottom: 1.25rem; position: relative; overflow: hidden;
+      animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+    .rb-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--success), var(--purple-light), var(--yellow));
+    }
+
+    /* Image triplet */
+    .triplet-wrap { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+    .triplet-frame { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; aspect-ratio: 1; position: relative; }
+    .triplet-frame canvas { display: block; width: 100%; height: 100%; }
+
+    .meta-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* Classification buttons */
+    .rb-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 0.5rem; }
+    .btn-real  { background: linear-gradient(135deg, var(--purple), var(--success)); color: #fff; border: none; box-shadow: 0 4px 20px rgba(63,207,200,0.2); }
+    .btn-real:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(63,207,200,0.35); }
+    .btn-bogus { background: linear-gradient(135deg, var(--purple-dark), var(--pink)); color: #fff; border: none; box-shadow: 0 4px 20px rgba(255,61,121,0.2); }
+    .btn-bogus:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,61,121,0.35); }
+
+    /* ML confidence bar */
+    .ml-bar-wrap { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .ml-bar-track { height: 8px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; position: relative; }
+    .ml-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.16,1,0.3,1); width: 0%; }
+    .ml-bar-fill.real-fill { background: linear-gradient(90deg, var(--purple-light), var(--success)); }
+    .ml-bar-fill.bogus-fill { background: linear-gradient(90deg, var(--purple), var(--pink)); }
+    .ml-agreement .agree   { color: var(--success); font-weight: 500; }
+    .ml-agreement .disagree{ color: var(--yellow);  font-weight: 500; }
+
+    /* Outcome panels for RB game */
+    .rb-outcome {
+      border-radius: 16px; padding: 1.75rem; text-align: center;
+      margin-bottom: 1.25rem; animation: fadeUp 0.4s ease;
+      position: relative; overflow: hidden;
+    }
+    .rb-outcome::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .rb-outcome.real-correct  { background: rgba(63,207,200,0.07);  border: 1px solid rgba(63,207,200,0.25); }
+    .rb-outcome.real-correct::before { background: linear-gradient(90deg, var(--success), var(--purple-light)); }
+    .rb-outcome.bogus-correct { background: rgba(255,224,143,0.07); border: 1px solid rgba(255,224,143,0.25); }
+    .rb-outcome.bogus-correct::before { background: linear-gradient(90deg, var(--yellow), var(--purple-light)); }
+    .rb-outcome.wrong { background: rgba(255,61,121,0.07); border: 1px solid rgba(255,61,121,0.25); }
+    .rb-outcome.wrong::before { background: linear-gradient(90deg, var(--pink), var(--purple)); }
+
+    /* RB final screen */
+    .rb-final { text-align: center; padding: 1rem 0; }
+    .rb-final h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .rb-final h2 em { font-style: normal; background: linear-gradient(100deg, var(--success), var(--purple-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .ml-score-box {
+      display: inline-block; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 18px; padding: 1.75rem 3rem; margin: 1.5rem 0; position: relative; overflow: hidden;
+    }
+    .ml-score-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--success), var(--purple-light), var(--yellow)); }
+    .ml-agree-pct { font-family: 'DM Mono', monospace; font-size: 3rem; font-weight: 500; color: var(--success); line-height: 1; margin-bottom: 0.25rem; }
+    .ml-agree-label { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .tier-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: 'DM Mono', monospace; font-size: 0.7rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--success); border: 1px solid rgba(63,207,200,0.3);
+      background: rgba(63,207,200,0.07); border-radius: 99px;
+      padding: 0.35rem 1rem; margin-bottom: 1.25rem;
+    }
+    .rb-final-msg { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); max-width: 460px; margin: 0 auto 2rem; line-height: 1.8; }
+  </style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="knc-site-header">
+  <div class="knc-logo-wrap">
+    <img src="./KiloNovaCatcher_files/LOGO_FINAL_J_600.png" alt="KiloNova Catcher">
+  </div>
+  <nav class="knc-nav">
+    <a href="http://kilonovacatcher.in2p3.fr/science">Science</a>
+    <a href="http://kilonovacatcher.in2p3.fr/faq">FAQ</a>
+    <a href="http://kilonovacatcher.in2p3.fr/howitworks">How It Works</a>
+    <a href="http://kilonovacatcher.in2p3.fr/about">About Us</a>
+    <a href="#" class="active">Games</a>
+    <a href="http://kilonovacatcher.in2p3.fr/registration">Register</a>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════
+     LANDING — narrative hook
+══════════════════════════════════════ -->
+<div class="landing-section" id="landingSection">
+  <div class="live-pill"><div class="live-dot"></div> Interactive Training</div>
+  <h2>You are about to join a<br><em>global hunt!</em></h2>
+  <p>Somewhere out there, two <strong>neutron stars</strong> are <strong>spiraling</strong> toward each other. When they collide, they will forge <strong>gold, platinum, and uranium</strong> in a flash brighter than a billion suns. They will bend <strong>spacetime</strong> itself.</p>
+  <p>Kilonova Catcher <strong>exists</strong> to catch that light. These games train the exact skills our global network of astronomers uses every time an alert <strong>fires</strong>. They mirror the contributions scientists like you will be making! </p>
+  <p>This is not a simulation of science. <strong>This is the science.</strong></p>
+  <p class="landing-cta">↓ Choose a game to begin</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     HERO GAME CARDS
+══════════════════════════════════════ -->
+<div class="game-hero" id="gameHero">
+  <div class="game-card card-alert" onclick="switchGame('alert')">
+    <span class="game-card-icon">📡</span>
+    <div class="game-card-label">Game 1 · Tier 1 — Observer</div>
+    <div class="game-card-title">Alert Simulator</div>
+    <div class="game-card-desc">A gravitational wave alert fires at 2am. You have minutes. Read the GCN circular, interpret the skymap, assess your sky conditions — then decide: observe, or pass? Every scenario is based on a real KNC campaign and a real GCN circular.</div>
+    <span class="game-card-badge">Tier 1 — Observer</span>
+    <div class="game-card-start">Play now →</div>
+  </div>
+  <div class="game-card card-bogus" onclick="switchGame('bogus')">
+    <span class="game-card-icon">🔬</span>
+    <div class="game-card-label">Game 2 · Tier 1→2 Bridge</div>
+    <div class="game-card-title">Transient Classifier</div>
+    <div class="game-card-desc">You're handed three images, a lightcurve, and metadata — the same package a broker sends to our ML pipeline. Is the source real or an artifact? If real, what type? Your answers train your eye and directly mirror what the machine is learning.</div>
+    <span class="game-card-badge">Tier 1→2 Bridge — Image Analyst Onramp</span>
+    <div class="game-card-start">Play now →</div>
+  </div>
+</div>
+ 
+<!-- ══════════════════════════════════════
+     SLIM BROWSER TABS (shown when a game is active)
+══════════════════════════════════════ -->
+<div class="game-tabs-bar" id="gameTabsBar">
+  <div class="game-slim-tab" id="slimAlert" onclick="switchGame('alert')">
+    <span class="slim-icon">📡</span>
+    <span class="slim-name">Game 1 — Alert Simulator</span>
+  </div>
+  <div class="game-slim-tab" id="slimBogus" onclick="switchGame('bogus')">
+    <span class="slim-icon">🔬</span>
+    <span class="slim-name">Game 2 — Transient Classifier</span>
+  </div>
+</div>
+ 
+<!-- ══════════════════════════════════════
+     GAME 1: ALERT SIMULATOR
+══════════════════════════════════════ -->
+<div id="gameAlert" class="hidden">
+<div class="sim-container">
+  <div class="score-bar">
+    <div class="score-cell c-yellow"><div class="score-cell-label">Correct Decisions</div><div class="score-cell-value" id="scoreDisplay">0 / 0</div></div>
+    <div class="score-cell c-pink">  <div class="score-cell-label">Scenario</div>        <div class="score-cell-value" id="scenarioDisplay">—</div></div>
+    <div class="score-cell c-teal">  <div class="score-cell-label">Streak</div>          <div class="score-cell-value" id="streakDisplay">—</div></div>
+  </div>
+  <div class="progress-strip" id="progressStrip"></div>
+  <div class="steps" id="stepIndicator">
+    <div class="step-item active" id="step1"><div class="step-dot">1</div><span>Read Alert</span></div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-item" id="step2"><div class="step-dot">2</div><span>Conditions</span></div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-item" id="step3"><div class="step-dot">3</div><span>Decide</span></div>
+    <div class="step-line" id="line3"></div>
+    <div class="step-item" id="step4"><div class="step-dot">4</div><span>Outcome</span></div>
+  </div>
+ 
+  <div id="phaseAlert">
+    <div class="gcn-ticker"><span>GCN NETWORK FEED &nbsp;|&nbsp; <span class="hl">● LIVE</span> &nbsp;|&nbsp; Monitoring LVK O4 · SVOM · Fermi-GBM · Swift-BAT &nbsp;|&nbsp; Last event: 2.3 hrs ago &nbsp;|&nbsp; <span class="hl-pink">Active observers: 14</span> &nbsp;|&nbsp; GW events this run: 3 &nbsp;|&nbsp;</span></div>
+    <div class="card"><div class="card-title">Incoming GCN Alert</div><div class="alert-box" id="alertBox"></div></div>
+    <div class="text-center"><button class="btn btn-primary" onclick="goToConditions()">📡 Check Sky Conditions →</button></div>
+  </div>
+ 
+  <div id="phaseConditions" class="hidden">
+    <div class="card"><div class="card-title">Your Observatory Conditions</div><div class="conditions-grid" id="conditionsGrid"></div></div>
+    <div class="text-center"><button class="btn btn-observe" onclick="goToDecision()">Make My Decision →</button></div>
+  </div>
+ 
+  <div id="phaseDecision" class="hidden">
+    <div class="card">
+      <div class="decision-section">
+        <div class="decision-prompt">Should you observe this target?</div>
+        <div class="decision-sub">Weigh the alert priority, time window, and your sky conditions.</div>
+        <div class="decision-buttons">
+          <button class="btn btn-observe" onclick="makeDecision('observe')">🔭 Observe Now</button>
+          <button class="btn btn-ghost"   onclick="makeDecision('skip')">⏭ Skip This Event</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <div id="phaseOutcome" class="hidden">
+    <div class="outcome-panel" id="outcomePanel">
+      <div class="outcome-icon"  id="outcomeIcon"></div>
+      <div class="outcome-title" id="outcomeTitle"></div>
+      <div class="outcome-text"  id="outcomeText"></div>
+      <div class="outcome-fact"  id="outcomeFact"></div>
+    </div>
+    <div class="text-center"><button class="btn btn-observe" id="nextBtn" onclick="nextScenario()">Next Scenario →</button></div>
+  </div>
+ 
+  <div id="phaseFinal" class="hidden">
+    <div class="card">
+      <div class="final-screen">
+        <h2>Simulation <em>Complete</em></h2>
+        <p style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);">Here's how your decisions compared to experienced KNC observers.</p>
+        <div class="final-score-box">
+          <div class="final-big-num" id="finalScore">—</div>
+          <div class="final-big-label" id="finalScoreLabel">correct decisions</div>
+        </div><br>
+        <div class="rank-pill" id="rankBadge">—</div>
+        <p class="final-msg" id="finalMessage"></p>
+        <div class="final-cta">
+          <button class="btn-join"   onclick="window.location.href='#join'">🚀 Join KNC Network</button>
+          <button class="btn-replay" onclick="restartSim()">↩ Play Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- end #gameAlert -->
+ 
+<!-- ══════════════════════════════════════
+     GAME 2: TRANSIENT CLASSIFIER (2-step)
+══════════════════════════════════════ -->
+<div id="gameBogus" class="hidden">
+<div class="sim-container">
+ 
+  <!-- Score bar -->
+  <div class="rb-score-bar score-bar">
+    <div class="score-cell c-teal">
+      <div class="score-cell-label">Full Rounds Correct</div>
+      <div class="score-cell-value" id="rbScoreDisplay">0 / 0</div>
+    </div>
+    <div class="score-cell c-pink">
+      <div class="score-cell-label">Round</div>
+      <div class="score-cell-value" id="rbSetDisplay">—</div>
+    </div>
+    <div class="score-cell c-yellow">
+      <div class="score-cell-label">Type Accuracy</div>
+      <div class="score-cell-value" id="rbTypeDisplay">—</div>
+    </div>
+  </div>
+ 
+  <!-- Progress dots -->
+  <div class="progress-strip" id="rbProgressStrip"></div>
+ 
+  <!-- Steps indicator -->
+  <div class="steps" id="rbStepIndicator">
+    <div class="step-item active" id="rbStep1"><div class="step-dot">1</div><span>View Data</span></div>
+    <div class="step-line" id="rbLine1"></div>
+    <div class="step-item" id="rbStep2"><div class="step-dot">2</div><span>Real or Bogus?</span></div>
+    <div class="step-line" id="rbLine2"></div>
+    <div class="step-item" id="rbStep3"><div class="step-dot">3</div><span>What Type?</span></div>
+    <div class="step-line" id="rbLine3"></div>
+    <div class="step-item" id="rbStep4"><div class="step-dot">4</div><span>Outcome</span></div>
+  </div>
+ 
+  <!-- Phase 1: View data -->
+  <div id="rbPhaseView">
+    <div class="rb-card">
+      <div class="rb-card-title">Image Triplet — Science · Reference · Difference</div>
+      <div class="triplet-wrap" id="rbTriplet">
+        <div class="triplet-frame"><canvas id="rbSciCanvas"></canvas><div class="triplet-label">Science</div></div>
+        <div class="triplet-frame"><canvas id="rbRefCanvas"></canvas><div class="triplet-label">Reference</div></div>
+        <div class="triplet-frame"><canvas id="rbDiffCanvas"></canvas><div class="triplet-label">Difference</div></div>
+      </div>
+    </div>
+    <div class="rb-card">
+      <div class="rb-card-title">Lightcurve</div>
+      <canvas id="rbLcCanvas" style="width:100%;display:block;border-radius:8px;" height="160"></canvas>
+      <div class="plot-legend" id="rbLcLegend" style="margin-top:8px;"></div>
+    </div>
+    <div class="rb-card">
+      <div class="rb-card-title">Alert Metadata</div>
+      <div class="meta-strip" id="rbMeta"></div>
+    </div>
+    <div class="text-center">
+      <button class="btn btn-primary" onclick="rbGoToRealBogus()">Make My Assessment →</button>
+    </div>
+  </div>
+ 
+  <!-- Phase 2: Real or Bogus — side-by-side layout -->
+  <div id="rbPhaseRB" class="hidden">
+    <div class="q-layout">
+      <!-- LEFT: data reference panel -->
+      <div class="data-ref-panel" id="rbRefPanelRB">
+        <div class="data-ref-header">
+          <span>Your data</span>
+          <span class="data-ref-back" onclick="rbGoBack()">← view data</span>
+        </div>
+        <div class="data-ref-triplet">
+          <div class="data-ref-frame"><canvas id="rbRefSci1"></canvas><div class="data-ref-frame-label">Sci</div></div>
+          <div class="data-ref-frame"><canvas id="rbRefRef1"></canvas><div class="data-ref-frame-label">Ref</div></div>
+          <div class="data-ref-frame"><canvas id="rbRefDif1"></canvas><div class="data-ref-frame-label">Diff</div></div>
+        </div>
+        <div class="data-ref-meta" id="rbRefMetaRB"></div>
+      </div>
+      <!-- RIGHT: question card -->
+      <div class="rb-card" style="margin-bottom:0;">
+        <div class="decision-section">
+          <div class="decision-prompt">Step 1 — Real transient or image artifact?</div>
+          <div class="decision-sub">A real source appears in Science, is absent from Reference, and leaves a clean round residual in Difference. Bogus sources show dipoles, streaks, hot pixels, or other asymmetric morphology.</div>
+          <div class="rb-buttons">
+            <button class="btn btn-real"  onclick="rbDecideRB('real')">✓ Real Transient</button>
+            <button class="btn btn-bogus" onclick="rbDecideRB('bogus')">✗ Bogus / Artifact</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Phase 3: Type classification — side-by-side layout -->
+  <div id="rbPhaseType" class="hidden">
+    <div class="q-layout">
+      <!-- LEFT: data reference panel -->
+      <div class="data-ref-panel" id="rbRefPanelType">
+        <div class="data-ref-header">
+          <span>Your data</span>
+          <span class="data-ref-back" onclick="rbGoBack()">← view data</span>
+        </div>
+        <div class="data-ref-triplet">
+          <div class="data-ref-frame"><canvas id="rbRefSci2"></canvas><div class="data-ref-frame-label">Sci</div></div>
+          <div class="data-ref-frame"><canvas id="rbRefRef2"></canvas><div class="data-ref-frame-label">Ref</div></div>
+          <div class="data-ref-frame"><canvas id="rbRefDif2"></canvas><div class="data-ref-frame-label">Diff</div></div>
+        </div>
+        <div class="data-ref-meta" id="rbRefMetaType"></div>
+      </div>
+      <!-- RIGHT: question card -->
+      <div class="rb-card" style="margin-bottom:0;">
+        <div class="decision-section">
+          <div class="decision-prompt">Step 2 — What type of transient is it?</div>
+          <div class="decision-sub" id="rbTypeSub">Use the lightcurve shape, host offset, magnitude, and fading rate to classify the source.</div>
+          <div class="decision-buttons" id="rbTypeButtons" style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center;margin-top:1.5rem;">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Phase 4: Outcome -->
+  <div id="rbPhaseOutcome" class="hidden">
+    <!-- Real/bogus result -->
+    <div class="rb-outcome" id="rbRBOutcomePanel">
+      <div class="outcome-icon"  id="rbRBIcon"></div>
+      <div class="outcome-title" id="rbRBTitle"></div>
+      <div class="outcome-text"  id="rbRBText"></div>
+    </div>
+    <!-- Type result (only shown if real) -->
+    <div id="rbTypeOutcomeWrap">
+      <div class="rb-outcome" id="rbTypeOutcomePanel">
+        <div class="outcome-icon"  id="rbTypeIcon"></div>
+        <div class="outcome-title" id="rbTypeTitle"></div>
+        <div class="outcome-text"  id="rbTypeText"></div>
+      </div>
+    </div>
+    <!-- ML confidence -->
+    <div class="ml-bar-wrap">
+      <div class="ml-bar-header">
+        <span>ML Pipeline Confidence</span>
+        <span id="rbMlLabel">—</span>
+      </div>
+      <div class="ml-bar-track">
+        <div class="ml-bar-fill" id="rbMlBar"></div>
+      </div>
+      <div class="ml-agreement" id="rbMlAgreement"></div>
+    </div>
+    <!-- Science fact -->
+    <div class="outcome-fact" id="rbFact" style="display:block;margin-bottom:1.25rem;text-align:left;max-width:100%;"></div>
+    <div class="text-center">
+      <button class="btn btn-observe" id="rbNextBtn" onclick="rbNext()">Next Round →</button>
+    </div>
+  </div>
+ 
+  <!-- Phase: Final -->
+  <div id="rbPhaseFinal" class="hidden">
+    <div class="rb-card">
+      <div class="rb-final">
+        <h2>Session <em>Complete</em></h2>
+        <p style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);">Your real/bogus and type classification results.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:1.5rem 0;">
+          <div class="ml-score-box" style="padding:1.5rem 2rem;">
+            <div class="ml-agree-pct" id="rbFinalRBPct" style="font-size:2.2rem;">—</div>
+            <div class="ml-agree-label">real/bogus accuracy</div>
+          </div>
+          <div class="ml-score-box" style="padding:1.5rem 2rem;">
+            <div class="ml-agree-pct" id="rbFinalTypePct" style="font-size:2.2rem;color:var(--purple-light);">—</div>
+            <div class="ml-agree-label">type accuracy (real only)</div>
+          </div>
+        </div>
+        <div class="tier-pill" id="rbTierBadge">—</div>
+        <p class="rb-final-msg" id="rbFinalMsg"></p>
+        <div class="final-cta">
+          <button class="btn-join"   onclick="window.location.href='#join'">🚀 Join KNC Network</button>
+          <button class="btn-replay" onclick="rbRestart()">↩ Play Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+</div>
+</div><!-- end #gameBogus -->
+ 
+<script>
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║                                                                          ║
+   ║   KNC ALERT SIMULATOR — ALL EDITABLE CONTENT                             ║
+   ║                                                                          ║
+   ║   Anyone on the team can edit this section without coding knowledge.     ║
+   ║   Read the SCENARIO GUIDE below before adding or editing scenarios.      ║
+   ║   Do NOT edit anything past the "MACHINERY" line.                        ║
+   ║                                                                          ║
+   ╚══════════════════════════════════════════════════════════════════════════╝
+ 
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │  SCENARIO GUIDE — how to add a new scenario                             │
+   └─────────────────────────────────────────────────────────────────────────┘
+ 
+   Each scenario has four sections:
+ 
+   ① alert{}       — the GCN circular text shown on screen
+   ② sky{}         — the skymap shape (see SKY TYPES below)
+   ③ conditions[]  — observatory conditions (seeing, moon, etc.)
+   ④ outcomes{}    — what happens when the user chooses observe or skip
+ 
+   To add a new scenario:
+     1. Copy any existing scenario block (from { to the matching }),
+     2. Paste it at the end of the scenarios array (before the final ];),
+     3. Update every field — especially correctDecision and the sky{} block.
+ 
+   ═══════════════════════════════════════════════════════════════════════════
+   SKY TYPES — copy the matching template for your event
+   ═══════════════════════════════════════════════════════════════════════════
+ 
+   ── TYPE 1: swift_grb ────────────────────────────────────────────────────
+   Use for: Swift-BAT alerts with precise X-ray localisation (arcminute scale)
+   Draws:   small bullseye + crosshair at the exact position
+ 
+     sky: {
+       type: 'swift_grb',
+       ra:        200.27,   // Right Ascension in DEGREES (0–360).
+                            // Convert from hms: e.g. 13h21m = 13*15 + 21/4 = 200.25°
+       dec:        29.93,   // Declination in degrees. North = positive, South = negative.
+       errArcmin:     2,    // XRT error circle radius in arcminutes (from GCN circular)
+       errPx:         5,    // Visual size of circle on map (keep 5 unless very large)
+     }
+ 
+   ── TYPE 2: fermi_grb ────────────────────────────────────────────────────
+   Use for: Fermi-GBM alerts with degree-scale localisation blobs
+   Draws:   two nested filled circles (50% and 90% containment regions)
+ 
+     sky: {
+       type: 'fermi_grb',
+       ra:    60.86,        // Centre of the Fermi localisation blob, in degrees
+       dec:  -75.38,        // Declination of centre
+       r50:      4,         // Radius of 50% region in DEGREES (from GCN)
+       r90:     10,         // Radius of 90% region in DEGREES (from GCN)
+     }
+ 
+   ── TYPE 3: gw_banana ────────────────────────────────────────────────────
+   Use for: 2-detector GW events (H1+L1 only) — classic long thin arc
+   Draws:   a curved arc band across the sky
+ 
+   HOW TO SET THE ARC:
+     The arc is a list of {ra, dec} points tracing the spine of the banana.
+     Get these from the LVK GCN skymap FITS file, or approximate visually:
+       - Look at the ligo.skymap plot for the event
+       - Pick ~8–12 points along the centre of the 90% band
+       - Note their RA (degrees) and Dec (degrees)
+       - List them in order from one end to the other
+     The arc can cross RA=0° — just keep the RA values continuous
+     (e.g. go 350°→5° for a wrap, not 350°→-10°)
+ 
+     sky: {
+       type: 'gw_banana',
+       area:  1681,         // 90% credible region area in square degrees (from GCN)
+       hw:      16,         // Half-width of band in degrees (typically 8–20)
+       arc: [               // Spine points — trace the centre of the banana
+         { ra: 318, dec:  2 },
+         { ra: 335, dec: 10 },
+         { ra: 350, dec: 18 },
+         { ra:   5, dec: 24 },   // ← RA crossing 0° is fine
+         { ra:  22, dec: 28 },
+         { ra:  42, dec: 30 },
+         { ra:  62, dec: 28 },
+         { ra:  82, dec: 22 },
+         { ra: 102, dec: 14 },
+         { ra: 122, dec:  5 },
+       ]
+     }
+ 
+   ── TYPE 4: gw_blob ──────────────────────────────────────────────────────
+   Use for: 3-detector GW events (H1+L1+Virgo) — compact island regions
+   Draws:   1–3 filled ellipses (islands of probability)
+ 
+   HOW TO SET THE ISLANDS:
+     Each island is an ellipse centred at ra/dec with given half-widths.
+     The first island is the primary (brightest, has the crosshair).
+     Get centres and sizes from the ligo.skymap FITS credible region plot.
+ 
+     sky: {
+       type: 'gw_blob',
+       area: 786,           // 90% credible region area in square degrees (from GCN)
+       islands: [
+         { ra:  48, dec: 16, raHalf: 18, decHalf: 12 },  // primary island
+         { ra:  20, dec:  5, raHalf: 12, decHalf:  9 },  // secondary island
+         { ra:  75, dec: 28, raHalf: 10, decHalf:  8 },  // tertiary (optional)
+         // raHalf / decHalf = semi-axes of the island ellipse in degrees
+         // Make these match the visual extent of the region on ligo.skymap
+       ]
+     }
+ 
+   ── TYPE 5: gw_wide ──────────────────────────────────────────────────────
+   Use for: poorly-constrained GW events — very large diffuse regions
+   Draws:   overlapping diffuse blobs forming a large uncertain region
+ 
+     sky: {
+       type: 'gw_wide',
+       area: 4000,          // 90% credible region in square degrees
+       centroid: { ra: 180, dec: 0 },   // approximate centre for label placement
+       patches: [           // overlapping blobs that together form the diffuse region
+         { ra: 160, dec:  10, raHalf: 40, decHalf: 25 },
+         { ra: 200, dec:  -5, raHalf: 45, decHalf: 30 },
+         { ra: 140, dec: -15, raHalf: 35, decHalf: 20 },
+       ]
+     }
+ 
+   ── TYPE 6: retracted ────────────────────────────────────────────────────
+   Use for: events that were retracted after initial alert
+   Draws:   a red X across the map
+ 
+     sky: { type: 'retracted' }
+ 
+   ═══════════════════════════════════════════════════════════════════════════
+   CONDITIONS — use these values for each condition item:
+     cls: 'good'  → green  (use when condition helps observation)
+     cls: 'okay'  → yellow (use when condition is marginal)
+     cls: 'poor'  → red    (use when condition hurts observation)
+     pct: 0–100   → bar fill percentage (rough guide: good=70–100, okay=40–70, poor=0–40)
+ 
+   CORRECT DECISION:
+     correctDecision: 'observe'   → user should choose "Observe Now"
+     correctDecision: 'skip'      → user should choose "Skip This Event"
+ 
+   OUTCOME TYPES:
+     type: 'success'  → teal panel (correct choice)
+     type: 'missed'   → pink panel (wrong choice — should have observed)
+     type: 'skip'     → yellow panel (wrong choice — should have skipped)
+ 
+   RA CONVERSION QUICK REFERENCE:
+     RA in hours → degrees: multiply by 15
+     RA in hms:  HH MM SS → (HH + MM/60 + SS/3600) × 15
+     Examples:
+       00h 00m = 0°      06h 00m = 90°     12h 00m = 180°
+       13h 21m = 200.25° 18h 09m = 272.25° 19h 13m = 288.25°
+   ═══════════════════════════════════════════════════════════════════════════ */
+ 
+const scenarios = [
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 1 — GRB 251205A
+     Swift-BAT long GRB, bright afterglow, KNC detection published GCN #43231
+     correctDecision: OBSERVE (good conditions, bright afterglow, reachable)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "LONG GRB — OPTICAL AFTERGLOW",
+      gcn:            "GCN #43231 (KNC)",
+      event:          "GRB 251205A",
+      source:         "Swift-BAT / Swift-UVOT",
+      classification: "Long GRB — bright optical afterglow confirmed at r=18.35",
+      ra:             "13h 21m 05.3s",
+      dec:            "+29° 55′ 44″",
+      distance:       "Redshift unknown — host at ~z<1 est.",
+      window:         "Afterglow fading: r~18.4 at T+10.9hr, r~19.8 at T+35.6hr",
+      priority:       "HIGH",
+    },
+    sky: {
+      type:      'swift_grb',
+      ra:         200.27,   // 13h 21m → 200.27°
+      dec:         29.93,
+      errArcmin:      2,
+      errPx:          5,
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Good",            pct:80, cls:"good" },
+      { label:"Moon Phase",       value:"Waxing Crescent", pct:70, cls:"good" },
+      { label:"Target Altitude",  value:"58°",             pct:76, cls:"good" },
+      { label:"Seeing (FWHM)",    value:"1.8″",            pct:68, cls:"good" },
+    ],
+    correctDecision: "observe",
+    outcomes: {
+      observe: {
+        type:"success", icon:"🌟",
+        title:"KNC afterglow detected! GCN #43231 submitted.",
+        text: "M. Freeberg observed with a TEC160FL refractor. At T+10.9hr KNC detected r=18.35±0.09, well within reach of citizen science apertures. Stacked r and i frames contributed to the published lightcurve.",
+        fact: "<strong>Real KNC result:</strong> This is a genuine KNC detection. The TEC160FL is a 160mm (~6.3″) refractor operated by a KNC citizen scientist. Afterglow at r~18–20 is reachable with 8–12″ telescopes using stacked 180s exposures.",
+      },
+      skip: {
+        type:"missed", icon:"😟",
+        title:"Missed — afterglow was bright and fading fast",
+        text: "At r~18.4 just 11 hours post-trigger this was one of the brighter afterglows of the year, comfortably detectable with amateur apertures. KNC did observe and published GCN #43231.",
+        fact: "<strong>Real KNC result:</strong> KNC citizen scientist M. Freeberg detected the afterglow with a TEC160FL refractor and contributed multi-epoch photometry to the global follow-up campaign.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 2 — GRB 230307A
+     Fermi-GBM long GRB, merger origin, kilonova confirmed by JWST
+     correctDecision: OBSERVE (nearby z=0.065, kilonova event)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "EXCEPTIONALLY BRIGHT LONG GRB",
+      gcn:            "GCN #33405 (Fermi-GBM)",
+      event:          "GRB 230307A",
+      source:         "Fermi-GBM / Swift-BAT",
+      classification: "Long GRB (T90=34.6s) — merger origin suspected, z=0.065",
+      ra:             "04h 03m 25.8s",
+      dec:            "−75° 22′ 43″",
+      distance:       "~290 Mpc (z=0.065, host galaxy confirmed)",
+      window:         "⚠ Potential kilonova — fades rapidly, JWST later confirmed KN",
+      priority:       "HIGH",
+    },
+    sky: {
+      type: 'fermi_grb',
+      ra:    60.86,   // 04h 03m → 60.86°
+      dec:  -75.38,
+      r50:      4,    // degrees
+      r90:     10,    // degrees
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Excellent",  pct:92, cls:"good" },
+      { label:"Moon Phase",       value:"New Moon",   pct:95, cls:"good" },
+      { label:"Target Altitude",  value:"28°",        pct:42, cls:"okay" },
+      { label:"Seeing (FWHM)",    value:"2.1″",       pct:58, cls:"okay" },
+    ],
+    correctDecision: "observe",
+    outcomes: {
+      observe: {
+        type:"success", icon:"🌟",
+        title:"Correct — this event had a confirmed kilonova!",
+        text: "GRB 230307A at z=0.065 (~290 Mpc) is only the second GRB with a confirmed kilonova (after GW170817). Despite its long T90, its merger origin was confirmed by JWST. At r~20.5 at T+34hr it was challenging but reachable with stacked exposures.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> This is the second-brightest GRB ever detected by Fermi-GBM and only the second confirmed long-duration merger event. JWST confirmed kilonova emission 29 days post-burst.",
+      },
+      skip: {
+        type:"missed", icon:"😟",
+        title:"This event had a confirmed kilonova — worth attempting",
+        text: "GRB 230307A turned out to be one of the most scientifically important GRBs ever: a long-duration merger at z=0.065 with JWST-confirmed kilonova emission. At r~20.5 at T+34hr it was pushing the limits of small apertures, but stacked imaging was worthwhile.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> GRANDMA responded to this event. The merger origin and kilonova were only confirmed later — at the time of the alert, the unusual brightness and low redshift made it a high-priority target regardless of T90.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 3 — S250818k
+     3-detector BNS candidate, AT2025ulz found but turned out to be SN IIb
+     correctDecision: OBSERVE (galaxy targeting warranted, science either way)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "GW CANDIDATE — SUB-THRESHOLD",
+      gcn:            "GCN #41437 (LVK)",
+      event:          "S250818k",
+      source:         "LVK O4 (LIGO H1+L1+Virgo)",
+      classification: "Sub-solar mass merger candidate — 29% BNS, 71% terrestrial",
+      ra:             "Localization: 786 deg² (90%), centroid ~RA 45°, Dec +15°",
+      dec:            "—",
+      distance:       "259 ± 74 Mpc",
+      window:         "Optical transient AT2025ulz found — initially red/fading, later rose as SN IIb",
+      priority:       "MEDIUM",
+    },
+    sky: {
+      type: 'gw_blob',
+      area: 786,
+      islands: [
+        { ra:  48, dec: 16, raHalf: 18, decHalf: 12 },   // primary island
+        { ra:  20, dec:  5, raHalf: 12, decHalf:  9 },   // secondary
+        { ra:  75, dec: 28, raHalf: 10, decHalf:  8 },   // tertiary
+      ],
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Good",            pct:75, cls:"good" },
+      { label:"Moon Phase",       value:"Waxing Crescent", pct:65, cls:"good" },
+      { label:"Target Altitude",  value:"40°",             pct:58, cls:"okay" },
+      { label:"Seeing (FWHM)",    value:"2.0″",            pct:62, cls:"okay" },
+    ],
+    correctDecision: "observe",
+    outcomes: {
+      observe: {
+        type:"success", icon:"🔭",
+        title:"Good call — galaxy targeting was the right move",
+        text: "S250818k triggered KNC/GRANDMA galaxy-targeted follow-up. AT2025ulz was initially promising — rapid fading, red colours. It turned out to be a Type IIb supernova, but correctly vetting it required observations. Upper limits are valid science products.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> GRANDMA observed the skymap of S250818k (GCN #41437). AT2025ulz was ultimately ruled out as a kilonova — but the exercise demonstrated how KNC triage works at scale.",
+      },
+      skip: {
+        type:"missed", icon:"🤔",
+        title:"Borderline — but the 29% BNS probability warranted a look",
+        text: "Sub-threshold events are genuinely ambiguous. S250818k had a 1-in-170-day FAR and a candidate counterpart that initially showed kilonova-like colours. Galaxy targeting was the right response.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> KNC and GRANDMA did observe S250818k. AT2025ulz turned out to be SN IIb — ruling it out required the observations.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 4 — S251112cm
+     2-detector sub-solar mass GW candidate, 93 Mpc — very nearby
+     correctDecision: OBSERVE (proximity + unusual chirp mass = high priority)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "GW CANDIDATE — SUB-SOLAR MASS",
+      gcn:            "GCN #42650 (LVK)",
+      event:          "S251112cm",
+      source:         "LVK O4 (MBTA SSM pipeline)",
+      classification: "Sub-solar mass compact binary — FAR 1 per 4–6 yr, NS content <8%",
+      ra:             "Localization: 1681 deg² (90%), centroid ~RA 4°, Dec +25°",
+      dec:            "—",
+      distance:       "93 ± 27 Mpc",
+      window:         "Extremely nearby if real — potential EM counterpart very bright",
+      priority:       "HIGH",
+    },
+    sky: {
+      type: 'gw_banana',
+      area: 1681,
+      hw:     16,   // half-width of the band in degrees
+      arc: [        // spine points tracing the centre of the banana
+        { ra: 318, dec:  2 },
+        { ra: 335, dec: 10 },
+        { ra: 350, dec: 18 },
+        { ra:   5, dec: 24 },   // crosses RA=0° — this is fine
+        { ra:  22, dec: 28 },
+        { ra:  42, dec: 30 },
+        { ra:  62, dec: 28 },
+        { ra:  82, dec: 22 },
+        { ra: 102, dec: 14 },
+        { ra: 122, dec:  5 },
+      ],
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Excellent",     pct:88, cls:"good" },
+      { label:"Moon Phase",       value:"Waxing Gibbous",pct:45, cls:"okay" },
+      { label:"Target Altitude",  value:"52°",           pct:70, cls:"good" },
+      { label:"Seeing (FWHM)",    value:"1.6″",          pct:72, cls:"good" },
+    ],
+    correctDecision: "observe",
+    outcomes: {
+      observe: {
+        type:"success", icon:"🔭",
+        title:"Right call — 93 Mpc distance made this high priority",
+        text: "At 93 Mpc, any real EM counterpart would be bright enough for KNC telescopes. The unusual sub-solar chirp mass made this scientifically novel. GRANDMA and KNC performed galaxy-targeted observations.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> GRANDMA responded (GCN #42690 region). The sub-solar mass nature of S251112cm makes it one of the most intriguing O4 events regardless of outcome.",
+      },
+      skip: {
+        type:"missed", icon:"😟",
+        title:"This was worth attempting — FAR 1/4yr and only 93 Mpc",
+        text: "A real event at 93 Mpc would produce a kilonova well within citizen science telescope reach. Galaxy-targeted searches are exactly what KNC is designed for.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> KNC and GRANDMA observed candidates in the S251112cm skymap. The very nearby distance made this one of the most compelling sub-threshold events of O4.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 5 — GRB 221009A (THE BOAT)
+     Collapsar long GRB at z=0.151 — NOT a kilonova target despite perfect conditions
+     correctDecision: SKIP (collapsar, high-z, no r-process emission expected)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "EXCEPTIONALLY BRIGHT LONG GRB — BOAT",
+      gcn:            "GCN #32636 (Fermi-GBM)",
+      event:          "GRB 221009A",
+      source:         "Fermi-GBM / Swift-BAT / Fermi-LAT",
+      classification: "Collapsar long GRB (T90 ≈ 327s) — brightest GRB ever detected",
+      ra:             "19h 13m 01s",
+      dec:            "+19° 48′ 34″",
+      distance:       "~2.4 Gpc (z=0.151)",
+      window:         "Afterglow saturated detectors — once-in-10,000-year event, no kilonova expected",
+      priority:       "LOW",
+    },
+    sky: {
+      type:      'swift_grb',
+      ra:         288.25,   // 19h 13m → 288.25°
+      dec:         19.81,
+      errArcmin:      2.4,
+      errPx:          5,
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Excellent", pct:94, cls:"good" },
+      { label:"Moon Phase",       value:"New Moon",  pct:96, cls:"good" },
+      { label:"Target Altitude",  value:"65°",       pct:85, cls:"good" },
+      { label:"Seeing (FWHM)",    value:"1.3″",      pct:82, cls:"good" },
+    ],
+    correctDecision: "skip",
+    outcomes: {
+      observe: {
+        type:"skip", icon:"📡",
+        title:"Conditions perfect — but this is a collapsar, not a KN target",
+        text: "GRB 221009A is the brightest GRB ever recorded (the BOAT), but at z=0.151 (~2.4 Gpc) it is a collapsar — a massive star death, not a neutron star merger. No kilonova emission is expected.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> GRANDMA observed GRB 221009A for completeness. The afterglow was detectable, but the event is a textbook collapsar with no kilonova component.",
+      },
+      skip: {
+        type:"success", icon:"🎯",
+        title:"Correct — collapsar GRBs at high-z are not KNC targets",
+        text: "The BOAT's collapsar nature (T90~327s, z=0.151, ~2.4 Gpc) means no kilonova. Understanding event classification — not just brightness — is core KNC training.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> GRANDMA observed for learning purposes, but the science case for KNC follow-up was weak. The BOAT produced no r-process kilonova emission.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 6 — GRB 250702F
+     Swift-BAT long GRB, bright early afterglow, 5 KNC telescopes responded
+     correctDecision: OBSERVE (R=18.1 at T+1.9hr, excellent conditions)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "LONG GRB — BRIGHT EARLY AFTERGLOW",
+      gcn:            "GCN #40969 (KNC)",
+      event:          "GRB 250702F",
+      source:         "Swift-BAT / Fermi-GBM",
+      classification: "Long GRB — bright early afterglow R=18.1 at T+1.9hr",
+      ra:             "~14h 55m",
+      dec:            "~+32°",
+      distance:       "Unknown redshift — afterglow bright",
+      window:         "Rapidly fading afterglow — act within first 2–6 hours for best detection",
+      priority:       "HIGH",
+    },
+    sky: {
+      type:      'swift_grb',
+      ra:         223.75,   // ~14h 55m → 223.75°
+      dec:         32,
+      errArcmin:      2,
+      errPx:          5,
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Excellent", pct:90, cls:"good" },
+      { label:"Moon Phase",       value:"New Moon",  pct:95, cls:"good" },
+      { label:"Target Altitude",  value:"55°",       pct:73, cls:"good" },
+      { label:"Seeing (FWHM)",    value:"1.5″",      pct:78, cls:"good" },
+    ],
+    correctDecision: "observe",
+    outcomes: {
+      observe: {
+        type:"success", icon:"🌟",
+        title:"KNC observed — R=18.1 detected at T+1.9hr!",
+        text: "Multiple KNC members responded: T-BRO, CDK17-AITP, iTelescope T72, TEC180FL, and a 14SC telescope. Stacked frames subtracted from PanSTARRS DR2 templates revealed the afterglow.",
+        fact: "<strong>Real KNC result:</strong> 5 KNC citizen science telescopes responded to GRB 250702F within 2 hours. Multi-site coordination working exactly as designed.",
+      },
+      skip: {
+        type:"missed", icon:"😟",
+        title:"Missed — afterglow was bright and multiple KNC members responded",
+        text: "GRB 250702F had an R=18.1 afterglow at T+1.9hr. Five separate KNC telescopes detected it — one of the brightest afterglow detections in KNC's history.",
+        fact: "<strong>Real KNC result:</strong> GCN #40969 lists contributions from T-BRO, CDK17, iTelescope T72, TEC180FL, and a 14SC — five different citizen science telescopes detecting the same event.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 7 — GRB 250424A
+     Swift-BAT long GRB, multi-site KNC response across 3 continents
+     correctDecision: OBSERVE (marginal but reachable with stacking)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "LONG GRB — MULTI-SITE KNC RESPONSE",
+      gcn:            "GCN #40240 (KNC)",
+      event:          "GRB 250424A",
+      source:         "Swift-BAT / Swift-UVOT",
+      classification: "Long GRB — optical afterglow at r=19.3 at T+1.3hr",
+      ra:             "~13h 08m",
+      dec:            "~−14°",
+      distance:       "Unknown z — afterglow fading from r~19.3",
+      window:         "Fading afterglow: r~19.3 at T+1.3hr → r~19.95 at T+6.8hr",
+      priority:       "MEDIUM",
+    },
+    sky: {
+      type:      'swift_grb',
+      ra:         197,   // ~13h 08m → 197°
+      dec:        -14,
+      errArcmin:    2,
+      errPx:        5,
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Good",         pct:78, cls:"good" },
+      { label:"Moon Phase",       value:"First Quarter", pct:55, cls:"okay" },
+      { label:"Target Altitude",  value:"35°",          pct:50, cls:"okay" },
+      { label:"Seeing (FWHM)",    value:"2.2″",         pct:55, cls:"okay" },
+    ],
+    correctDecision: "observe",
+    outcomes: {
+      observe: {
+        type:"success", icon:"🔭",
+        title:"Detected — three KNC sites contributed data",
+        text: "KNC used iT30 (Siding Spring), a Celestron C14 (New Zealand), and CDK17 (Chile) — three sites on three continents. The afterglow at r~19.3–20.0 is at the limit for 8–12″ telescopes but achievable with stacking.",
+        fact: "<strong>Real KNC result:</strong> GCN #40240 shows three KNC instruments spanning Australia, New Zealand, and Chile observing the same event.",
+      },
+      skip: {
+        type:"missed", icon:"🤔",
+        title:"Worth attempting — afterglow was detectable with stacked frames",
+        text: "r~19.3 at T+1.3hr is challenging but reachable with 12–17″ apertures and stacked exposures. The multi-continental coverage KNC deployed made this a successful campaign.",
+        fact: "<strong>Real KNC result:</strong> Three KNC telescopes across Australia, New Zealand and Chile covered different epochs of GRB 250424A's fading afterglow.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 8 — S240422ed
+     BNS GW candidate at 1556 Mpc — too distant for amateur apertures
+     correctDecision: SKIP (kilonova would be ~23+ mag, beyond 8–12″)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "GW CANDIDATE — BNS",
+      gcn:            "GCN #36555 (LVK)",
+      event:          "S240422ed",
+      source:         "LVK O4 (LIGO H1+L1+Virgo)",
+      classification: "BNS merger — 97% HasNS, mass gap candidate",
+      ra:             "Localization: ~600 deg² (90%), centroid ~RA 195°, Dec +10°",
+      dec:            "—",
+      distance:       "~1556 ± 670 Mpc",
+      window:         "Very distant — kilonova counterpart at ~23+ mag, beyond most amateur reach",
+      priority:       "LOW",
+    },
+    sky: {
+      type: 'gw_banana',
+      area:  600,
+      hw:     14,
+      arc: [
+        { ra: 128, dec: -2 },
+        { ra: 148, dec:  4 },
+        { ra: 168, dec:  8 },
+        { ra: 193, dec: 11 },
+        { ra: 218, dec: 10 },
+        { ra: 238, dec:  5 },
+        { ra: 256, dec: -1 },
+      ],
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Excellent", pct:90, cls:"good" },
+      { label:"Moon Phase",       value:"New Moon",  pct:92, cls:"good" },
+      { label:"Target Altitude",  value:"60°",       pct:80, cls:"good" },
+      { label:"Seeing (FWHM)",    value:"1.4″",      pct:80, cls:"good" },
+    ],
+    correctDecision: "skip",
+    outcomes: {
+      observe: {
+        type:"missed", icon:"🌫️",
+        title:"Too distant for 8–12″ apertures",
+        text: "At ~1556 Mpc, a kilonova counterpart would be ~23–24 mag — well beyond 8–12″ telescopes even under perfect conditions. Professional 2m+ telescopes reported upper limits.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> GRANDMA reported upper limits for S240422ed, but the distance pushed the kilonova below amateur detection thresholds. Distance awareness is a key part of KNC triage.",
+      },
+      skip: {
+        type:"success", icon:"🎯",
+        title:"Correct — distance rules out amateur detection",
+        text: "S240422ed at ~1556 Mpc puts any kilonova at ~23+ mag. That's the limit of 4m-class telescopes, not 8–12″ citizen science apertures.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> Professional telescopes (Las Cumbres, GECKO/KMTNet) responded. KNC/GRANDMA confirmed the event was too distant for small-aperture meaningful contributions.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 9 — GRB 230812B
+     Short GRB at z=0.177, KNC/GRANDMA detected afterglow and set KN upper limits
+     correctDecision: OBSERVE (short GRBs at z<0.2 are primary KNC targets)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "SHORT GRB — POSSIBLE KILONOVA",
+      gcn:            "GCN #34295 (KNC/GRANDMA)",
+      event:          "GRB 230812B",
+      source:         "Fermi-GBM / Swift-BAT",
+      classification: "Short GRB (T90 = 0.6s) — possible neutron star merger, z=0.177",
+      ra:             "18h 09m 05s",
+      dec:            "+15° 06′ 40″",
+      distance:       "~870 Mpc (z=0.177)",
+      window:         "Optical afterglow fading — counterpart ~19–20 mag at T+several hours",
+      priority:       "HIGH",
+    },
+    sky: {
+      type:      'swift_grb',
+      ra:         272.27,   // 18h 09m → 272.25°
+      dec:         15.11,
+      errArcmin:      1.8,
+      errPx:          5,
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Good",           pct:76, cls:"good" },
+      { label:"Moon Phase",       value:"Waning Crescent",pct:72, cls:"good" },
+      { label:"Target Altitude",  value:"48°",            pct:65, cls:"good" },
+      { label:"Seeing (FWHM)",    value:"1.9″",           pct:65, cls:"good" },
+    ],
+    correctDecision: "observe",
+    outcomes: {
+      observe: {
+        type:"success", icon:"🌟",
+        title:"KNC/GRANDMA responded — afterglow detected and upper limits set",
+        text: "GRB 230812B is a short GRB at z=0.177 — a genuine neutron star merger candidate. KNC/GRANDMA performed optical afterglow detection and set upper limits on kilonova emission.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> Short GRBs at z<0.2 are primary KNC targets — kilonovae reach ~21–22 mag, the edge of deep amateur imaging.",
+      },
+      skip: {
+        type:"missed", icon:"😟",
+        title:"Short GRB at z=0.177 — this was worth attempting",
+        text: "Short GRBs at z<0.2 are the sweet spot for KNC citizen science. The neutron star merger interpretation and sub-1 Gpc distance made GRB 230812B a priority target.",
+        fact: "<strong>Real KNC/GRANDMA result:</strong> This event type — short GRB at low-z — is exactly the scenario KNC prepares volunteers for. Kilonova emission peaks around r~21–22, reachable with deep stacking on 12–17″ apertures.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SCENARIO 10 — GRB 250818B
+     Swift-BAT long GRB but full Moon + clouds + poor seeing
+     correctDecision: SKIP (conditions too poor for publishable data)
+  ══════════════════════════════════════════════════════════════════════════ */
+  {
+    alert: {
+      type:           "LONG GRB — AFTERGLOW",
+      gcn:            "GCN #41375 (KNC)",
+      event:          "GRB 250818B",
+      source:         "Swift-BAT",
+      classification: "Long GRB — optical afterglow detected",
+      ra:             "~22h 14m",
+      dec:            "~+32°",
+      distance:       "Unknown redshift",
+      window:         "Afterglow detectable — observe within first 12hr for photometry",
+      priority:       "MEDIUM",
+    },
+    sky: {
+      type:      'swift_grb',
+      ra:         333,   // ~22h 14m → 333°
+      dec:         32,
+      errArcmin:    2,
+      errPx:        5,
+    },
+    conditions: [
+      { label:"Sky Transparency", value:"Partly Cloudy", pct:42, cls:"poor" },
+      { label:"Moon Phase",       value:"Full Moon",     pct:10, cls:"poor" },
+      { label:"Target Altitude",  value:"55°",           pct:73, cls:"good" },
+      { label:"Seeing (FWHM)",    value:"2.8″",          pct:35, cls:"poor" },
+    ],
+    correctDecision: "skip",
+    outcomes: {
+      observe: {
+        type:"missed", icon:"☁️",
+        title:"Conditions made this observation marginal",
+        text: "Partly cloudy skies, a full Moon, and 2.8″ seeing combined to make photometric data unreliable. KNC protocol: if you can't constrain it meaningfully, don't submit it.",
+        fact: "<strong>KNC Science Note:</strong> Knowing when conditions are too poor for useful data is as valuable as knowing when to observe — bad data can propagate errors into the literature.",
+      },
+      skip: {
+        type:"success", icon:"✅",
+        title:"Smart — full Moon and clouds make photometry unreliable",
+        text: "A full Moon raises the sky background dramatically — equivalent to losing 1–2 magnitudes of depth. Combined with 2.8″ seeing and patchy clouds, any magnitude measurement would have large systematic errors.",
+        fact: "<strong>KNC Science Note:</strong> KNC operates across multiple time zones so when one site has poor conditions, another can cover. Passing an alert to a better-positioned observer is not defeat — it's network coordination.",
+      },
+    },
+  },
+ 
+  /* ══════════════════════════════════════════════════════════════════════════
+     ADD NEW SCENARIOS BELOW THIS LINE
+     Copy any scenario block above (from { to the closing }),)
+     and paste it here. Update all fields using the guide at the top.
+  ══════════════════════════════════════════════════════════════════════════ */
+ 
+];
+ 
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║   MACHINERY — DO NOT EDIT BELOW THIS LINE                               ║
+   ║   (unless you are a developer)                                           ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+ 
+/* ── Starfield ── */
+(function(){
+  const canvas=document.getElementById('stars'),ctx=canvas.getContext('2d');
+  let stars=[];
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  function init(){
+    resize();
+    stars=Array.from({length:160},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.2+0.2,a:Math.random(),da:(Math.random()*0.003+0.001)*(Math.random()<0.5?1:-1)}));
+  }
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    stars.forEach(s=>{s.a+=s.da;if(s.a>1||s.a<0.1)s.da*=-1;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(200,190,255,${s.a})`;ctx.fill();});
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',()=>{resize();init();});
+  init();draw();
+})();
+ 
+/* ── Skymap renderer ── */
+function drawSkymap(scenario) {
+  const old=document.getElementById('skymapWrap');
+  if(old)old.remove();
+  const wrap=document.createElement('div');
+  wrap.className='skymap-wrap';wrap.id='skymapWrap';
+  const labelBar=document.createElement('div');
+  labelBar.className='skymap-label';
+  const alertType=scenario.alert.type||'';
+  const isGW=alertType.includes('GW')||alertType.includes('LIGO')||alertType.includes('KAGRA');
+  const regionColor=isGW?'rgba(63,207,200,0.55)':'rgba(255,224,143,0.55)';
+  const regionLabel=isGW?'LVK 90% region':'GRB localisation';
+  labelBar.innerHTML=`<span>Sky Localisation Map</span><div class="skymap-legend"><div class="skymap-leg-item"><div class="leg-swatch" style="background:${regionColor}"></div>${regionLabel}</div><div class="skymap-leg-item"><div class="leg-swatch" style="background:rgba(255,61,121,0.8);border-radius:50%"></div>Best position</div><div class="skymap-leg-item"><div class="leg-swatch" style="background:rgba(123,111,212,0.4)"></div>Milky Way</div></div>`;
+  wrap.appendChild(labelBar);
+  const canvas=document.createElement('canvas');
+  canvas.id='skymap';canvas.height=260;
+  wrap.appendChild(canvas);
+  document.getElementById('alertBox').after(wrap);
+ 
+  requestAnimationFrame(()=>{
+    const W=canvas.offsetWidth||820,H=270;
+    canvas.width=W;canvas.height=H;
+    const ctx=canvas.getContext('2d');
+    const cx=W/2,cy=H/2;
+    // Aitoff projection outputs x in [-π/2, π/2] and y in [-π/2, π/2].
+    // Divide scale factors by π/2 so the full sphere fits inside the canvas.
+    const rx=(W*0.46)/(Math.PI/2),ry=(H*0.46)/(Math.PI/2);
+ 
+    function aitoff(raDeg,decDeg){
+      const ra=((raDeg%360)+360)%360;
+      const lDeg=ra<=180?ra:ra-360;
+      const l=lDeg*Math.PI/180;
+      const b=Math.max(-89.9,Math.min(89.9,decDeg))*Math.PI/180;
+      const a2=Math.acos(Math.max(-1,Math.min(1,Math.cos(b)*Math.cos(l/2))));
+      const s=a2<1e-9?1:Math.sin(a2)/a2;
+      return{x:cx+rx*(Math.cos(b)*Math.sin(l/2)/s),y:cy-ry*(Math.sin(b)/s)};
+    }
+ 
+    let _seed=314159;
+    function srng(){_seed^=_seed<<13;_seed^=_seed>>7;_seed^=_seed<<17;return(_seed>>>0)/4294967296;}
+ 
+    ctx.fillStyle='#09071A';ctx.fillRect(0,0,W,H);
+ 
+    /* Milky Way */
+    const mwNodes=[
+      [0,-2],[17,-12],[34,-22],[51,-32],[68,-42],[85,-48],[102,-54],[119,-58],[132,-62],[146,-65],[160,-63],[172,-58],[184,-52],[196,-44],[208,-35],[220,-25],[232,-14],[244,-3],[256,8],[268,18],[280,29],[292,38],[304,46],[316,53],[328,59],[340,62],[352,62],[364,58],[376,52],[388,43],[400,33]
+    ].map(([r,d])=>({ra:((r%360)+360)%360,dec:d}));
+    const MW_HW=15;
+    ctx.beginPath();let mwFirst=true;
+    mwNodes.forEach(n=>{const p=aitoff(n.ra,n.dec+MW_HW);mwFirst?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);mwFirst=false;});
+    [...mwNodes].reverse().forEach(n=>{const p=aitoff(n.ra,n.dec-MW_HW);ctx.lineTo(p.x,p.y);});
+    ctx.closePath();ctx.fillStyle='rgba(123,111,212,0.12)';ctx.fill();
+ 
+    /* Grid */
+    ctx.strokeStyle='rgba(123,111,212,0.17)';ctx.lineWidth=0.5;
+    [-60,-30,0,30,60].forEach(dec=>{ctx.beginPath();for(let r=0;r<=360;r+=3){const p=aitoff(r,dec);r===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}ctx.stroke();});
+    [0,60,120,180,240,300].forEach(ra=>{ctx.beginPath();for(let d=-80;d<=80;d+=4){const p=aitoff(ra,d);d===-80?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}ctx.stroke();});
+ 
+    /* Border */
+    ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+    ctx.strokeStyle='rgba(123,111,212,0.35)';ctx.lineWidth=1;ctx.stroke();
+ 
+    /* Axis labels */
+    ctx.font='9px DM Mono, monospace';ctx.fillStyle='rgba(122,111,170,0.72)';ctx.textAlign='center';
+    ctx.fillText('0h',cx,cy+13);
+    [{lbl:'6h',ra:90},{lbl:'18h',ra:270}].forEach(o=>{const p=aitoff(o.ra,0);ctx.fillText(o.lbl,p.x,p.y+13);});
+    ctx.fillText('12h',cx-rx+10,cy+13);ctx.fillText('12h',cx+rx-10,cy+13);
+    ctx.textAlign='right';
+    [{lbl:'+60°',dec:60},{lbl:'0°',dec:0},{lbl:'-60°',dec:-60}].forEach(o=>{const p=aitoff(0,o.dec);ctx.fillText(o.lbl,p.x-4,p.y+3);});
+ 
+    /* Stars */
+    for(let i=0;i<300;i++){
+      const ra=srng()*360,dec=(Math.acos(2*srng()-1)*180/Math.PI)-90;
+      const p=aitoff(ra,dec);const r=srng()*0.9+0.2;
+      ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=`rgba(200,195,255,${srng()*0.45+0.2})`;ctx.fill();
+    }
+ 
+    const sky=scenario.sky;
+    if(!sky||sky.type==='none')return;
+    const YEL='rgba(255,224,143,',PINK='rgba(255,61,121,',TEAL='rgba(63,207,200,';
+ 
+    /* helper: draw a closed region, lifting pen at RA wrap discontinuities */
+    function drawRegion(pts,fillCol,strokeCol,lw=1.5){
+      if(!pts||pts.length<2)return;
+      ctx.beginPath();let penDown=false,prevRA=null;
+      for(let i=0;i<pts.length;i++){
+        const ra=((pts[i].ra%360)+360)%360,q=aitoff(ra,pts[i].dec);
+        const raJump=prevRA!==null&&Math.abs(ra-prevRA)>180;
+        if(raJump)penDown=false;
+        penDown?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
+        penDown=true;prevRA=ra;
+      }
+      ctx.closePath();ctx.fillStyle=fillCol;ctx.fill();ctx.strokeStyle=strokeCol;ctx.lineWidth=lw;ctx.stroke();
+    }
+ 
+    /* helper: sample ellipse as polygon of RA/Dec points */
+    function ellipsePts(raCtr,decCtr,raHalf,decHalf,steps=90){
+      const pts=[];
+      // Near poles cosD→0 making RA extent explode. Cap at 60° to stay on map.
+      const cosD=Math.max(0.25,Math.cos(decCtr*Math.PI/180));
+      for(let i=0;i<=steps;i++){
+        const t=i/steps*2*Math.PI;
+        pts.push({ra:raCtr+(raHalf/cosD)*Math.cos(t),dec:Math.max(-89.5,Math.min(89.5,decCtr+decHalf*Math.sin(t)))});
+      }
+      return pts;
+    }
+ 
+    if(sky.type==='swift_grb'){
+      const tp=aitoff(((sky.ra%360)+360)%360,sky.dec);
+      const r=Math.max(4,sky.errPx||5);
+      ctx.beginPath();ctx.arc(tp.x,tp.y,r,0,Math.PI*2);ctx.fillStyle=YEL+'0.18)';ctx.fill();ctx.strokeStyle=YEL+'0.8)';ctx.lineWidth=1.2;ctx.stroke();
+      ctx.beginPath();ctx.arc(tp.x,tp.y,2.5,0,Math.PI*2);ctx.fillStyle=PINK+'1)';ctx.fill();
+      ctx.strokeStyle=PINK+'0.9)';ctx.lineWidth=1;const arm=10;
+      ctx.beginPath();ctx.moveTo(tp.x-arm,tp.y);ctx.lineTo(tp.x+arm,tp.y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(tp.x,tp.y-arm);ctx.lineTo(tp.x,tp.y+arm);ctx.stroke();
+      ctx.font='8px DM Mono, monospace';ctx.fillStyle=YEL+'0.7)';
+      const labelY=tp.y>cy?tp.y-r-6:tp.y+r+12;
+      ctx.textAlign=tp.x>cx?'right':'left';
+      const labelX=tp.x>cx?tp.x-r-4:tp.x+r+4;
+      ctx.fillText('XRT ±'+(sky.errArcmin||2)+'′',labelX,labelY);
+    }
+ 
+    else if(sky.type==='fermi_grb'){
+      const r50=sky.r50||4,r90=sky.r90||9;
+      drawRegion(ellipsePts(sky.ra,sky.dec,r90,r90*0.85),YEL+'0.08)',YEL+'0.35)',1.2);
+      drawRegion(ellipsePts(sky.ra,sky.dec,r50,r50*0.85),YEL+'0.16)',YEL+'0.55)',1.5);
+      const tp=aitoff(((sky.ra%360)+360)%360,sky.dec);
+      ctx.beginPath();ctx.arc(tp.x,tp.y,3.5,0,Math.PI*2);ctx.fillStyle=PINK+'1)';ctx.fill();
+      // ry is now in canvas-pixels-per-radian; convert degree radius to pixels
+      const blobPxH=r90*(Math.PI/180)*ry;
+      ctx.font='8px DM Mono, monospace';ctx.fillStyle=YEL+'0.65)';ctx.textAlign='center';
+      const labelY90=tp.y-blobPxH-8;
+      ctx.fillText('Fermi-GBM 90% (~'+Math.round(Math.PI*r90*r90*0.85)+'°²)',tp.x,labelY90<14?tp.y+blobPxH+14:labelY90);
+    }
+ 
+    else if(sky.type==='gw_banana'){
+      const spine=sky.arc,hw=sky.hw||8;
+      if(spine&&spine.length>1){
+        const topPts=spine.map(p=>({ra:p.ra,dec:Math.min(89,p.dec+hw)}));
+        const botPts=[...spine].reverse().map(p=>({ra:p.ra,dec:Math.max(-89,p.dec-hw)}));
+        drawRegion([...topPts,...botPts],TEAL+'0.10)',TEAL+'0.50)',1.5);
+        ctx.beginPath();ctx.setLineDash([4,3]);let spineDown=false,prevSpineRA=null;
+        spine.forEach(p=>{
+          const ra=((p.ra%360)+360)%360,q=aitoff(ra,p.dec);
+          const raJump=prevSpineRA!==null&&Math.abs(ra-prevSpineRA)>180;
+          if(raJump)spineDown=false;
+          spineDown?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
+          spineDown=true;prevSpineRA=ra;
+        });
+        ctx.strokeStyle=TEAL+'0.6)';ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
+        const mid=spine[Math.floor(spine.length/2)];
+        const mp=aitoff(((mid.ra%360)+360)%360,mid.dec);
+        ctx.font='8px DM Mono, monospace';ctx.fillStyle=TEAL+'0.7)';ctx.textAlign='center';
+        const bLabelY=mp.y-hw*(Math.PI/180)*ry-8;
+        ctx.fillText('LVK 90% ('+sky.area+'°²)',mp.x,bLabelY<14?mp.y+hw*(Math.PI/180)*ry+14:bLabelY);
+      }
+    }
+ 
+    else if(sky.type==='gw_blob'){
+      (sky.islands||[]).forEach((isl,idx)=>{
+        const alpha=idx===0?0.18:0.10;
+        drawRegion(ellipsePts(isl.ra,isl.dec,isl.raHalf,isl.decHalf),YEL+alpha+')',YEL+'0.55)',1.5);
+      });
+      if(sky.islands&&sky.islands.length>0){
+        const best=sky.islands[0],tp=aitoff(((best.ra%360)+360)%360,best.dec);
+        ctx.beginPath();ctx.arc(tp.x,tp.y,3.5,0,Math.PI*2);ctx.fillStyle=PINK+'1)';ctx.fill();
+        ctx.strokeStyle=PINK+'0.9)';ctx.lineWidth=1;const arm=8;
+        ctx.beginPath();ctx.moveTo(tp.x-arm,tp.y);ctx.lineTo(tp.x+arm,tp.y);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(tp.x,tp.y-arm);ctx.lineTo(tp.x,tp.y+arm);ctx.stroke();
+        ctx.font='8px DM Mono, monospace';ctx.fillStyle=YEL+'0.65)';ctx.textAlign='center';
+        ctx.fillText('LVK 90% ('+sky.area+'°²)',tp.x,tp.y-best.decHalf*(Math.PI/180)*ry-8);
+      }
+    }
+ 
+    else if(sky.type==='gw_wide'){
+      (sky.patches||[]).forEach(p=>{
+        drawRegion(ellipsePts(p.ra,p.dec,p.raHalf,p.decHalf,48),TEAL+'0.07)',TEAL+'0.28)',1);
+      });
+      const c=sky.centroid||(sky.patches&&sky.patches[0]);
+      if(c){const cp=aitoff(((c.ra%360)+360)%360,c.dec);ctx.font='8px DM Mono, monospace';ctx.fillStyle=TEAL+'0.65)';ctx.textAlign='center';ctx.fillText('LVK 90% (~'+sky.area+'°²)',cp.x,cp.y-28);}
+    }
+ 
+    else if(sky.type==='retracted'){
+      const cp=aitoff(180,0);ctx.strokeStyle=PINK+'0.5)';ctx.lineWidth=2;const s=30;
+      ctx.beginPath();ctx.moveTo(cp.x-s,cp.y-s);ctx.lineTo(cp.x+s,cp.y+s);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cp.x+s,cp.y-s);ctx.lineTo(cp.x-s,cp.y+s);ctx.stroke();
+      ctx.font='bold 11px DM Mono, monospace';ctx.fillStyle=PINK+'0.7)';ctx.textAlign='center';
+      ctx.fillText('EVENT RETRACTED',cp.x,cp.y+s+16);
+    }
+  });
+}
+ 
+/* ── Game state ── */
+let currentIdx=0,score=0,streak=0;
+const TOTAL=scenarios.length;
+const shuffled=[...scenarios].sort(()=>Math.random()-0.5);
+ 
+function buildProgressStrip(){
+  const strip=document.getElementById('progressStrip');strip.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const dot=document.createElement('div');dot.className='prog-dot';dot.id='pdot-'+i;strip.appendChild(dot);}
+  const lbl=document.createElement('span');lbl.className='prog-label';lbl.id='progLabel';strip.appendChild(lbl);
+}
+function updateProgressStrip(activeIdx){
+  for(let i=0;i<TOTAL;i++){const dot=document.getElementById('pdot-'+i);if(!dot)continue;dot.className='prog-dot';if(i<activeIdx)dot.classList.add('done');else if(i===activeIdx)dot.classList.add('current');}
+  const lbl=document.getElementById('progLabel');if(lbl)lbl.textContent='Alert '+(activeIdx+1)+' of '+TOTAL;
+}
+function setPhase(p){['Alert','Conditions','Decision','Outcome','Final'].forEach(x=>document.getElementById('phase'+x).classList.add('hidden'));document.getElementById('phase'+p).classList.remove('hidden');}
+function updateSteps(active){for(let n=1;n<=4;n++){const el=document.getElementById('step'+n),line=document.getElementById('line'+n);el.className='step-item';if(n<active){el.classList.add('done');if(line)line.classList.add('done');}else if(n===active){el.classList.add('active');if(line)line.classList.remove('done');}else{if(line)line.classList.remove('done');}}}
+function updateScoreBar(){
+  document.getElementById('scoreDisplay').textContent=score+' / '+currentIdx;
+  document.getElementById('scenarioDisplay').textContent=Math.min(currentIdx+1,TOTAL)+' / '+TOTAL;
+  document.getElementById('streakDisplay').textContent=streak>=2?streak+' 🔥':streak>0?streak+'':'—';
+}
+function renderAlert(s){
+  const a=s.alert,priCls=a.priority==='HIGH'?'pri-high':a.priority==='RETRACTED'?'pri-retract':'pri-med';
+  const rows=[['EVENT ID',a.event],['SOURCE',a.source],['CLASSIFICATION',a.classification],['RA',a.ra],['DEC',a.dec],['DISTANCE',a.distance],['TIME WINDOW',a.window],['PRIORITY','<span class="'+priCls+'">'+a.priority+'</span>']];
+  document.getElementById('alertBox').innerHTML='<div class="alert-label"><span class="blink-dot"></span>'+a.gcn+' · '+a.type+'</div>'+rows.map(([k,v])=>'<div class="alert-row"><span class="alert-key">'+k+'</span><span class="alert-val">'+v+'</span></div>').join('');
+}
+function renderConditions(s){document.getElementById('conditionsGrid').innerHTML=s.conditions.map(c=>'<div class="condition-item '+c.cls+'"><label>'+c.label+'</label><div class="condition-val">'+c.value+'</div><div class="condition-bar"><div class="condition-bar-fill" style="width:'+c.pct+'%"></div></div></div>').join('');}
+function loadScenario(idx){const s=shuffled[idx];renderAlert(s);renderConditions(s);drawSkymap(s);updateSteps(1);updateScoreBar();updateProgressStrip(idx);setPhase('Alert');}
+function goToConditions(){updateSteps(2);setPhase('Conditions');}
+function goToDecision(){updateSteps(3);setPhase('Decision');}
+function makeDecision(decision){
+  const s=shuffled[currentIdx],correct=decision===s.correctDecision;
+  if(correct){score++;streak++;}else{streak=0;}
+  currentIdx++;updateSteps(4);updateScoreBar();
+  const o=s.outcomes[decision];
+  document.getElementById('outcomePanel').className='outcome-panel '+o.type;
+  document.getElementById('outcomeIcon').textContent=o.icon;
+  document.getElementById('outcomeTitle').textContent=o.title;
+  document.getElementById('outcomeText').textContent=o.text;
+  document.getElementById('outcomeFact').innerHTML=o.fact;
+  document.getElementById('nextBtn').textContent=currentIdx>=TOTAL?'🏁 See Results':'Next Scenario →';
+  setPhase('Outcome');
+}
+function nextScenario(){if(currentIdx>=TOTAL){showFinal();}else{loadScenario(currentIdx);}}
+function showFinal(){
+  document.getElementById('stepIndicator').classList.add('hidden');
+  document.getElementById('progressStrip').classList.add('hidden');
+  document.getElementById('finalScore').textContent=score+'/'+TOTAL;
+  document.getElementById('finalScoreLabel').textContent='correct decisions out of '+TOTAL;
+  const ranks=[
+    {min:Math.round(TOTAL*0.95),badge:'⭐ Expert Observer',  msg:'Perfect score — you think like a seasoned KNC coordinator. Your alert literacy is exactly what the network needs.'},
+    {min:Math.round(TOTAL*0.75),badge:'🔭 Skilled Observer', msg:'Strong performance. Solid instincts for alert triage — you\'d be an asset to the KNC active observer pool.'},
+    {min:Math.round(TOTAL*0.5), badge:'🌙 Rising Observer',  msg:'Good foundation. You\'re already thinking about the right factors. KNC\'s onboarding program will sharpen your decision-making fast.'},
+    {min:0,                      badge:'🌟 Citizen Astronomer',msg:'Every expert started here. KNC\'s training resources will help you build confidence fast — the network needs all kinds of contributors.'},
+  ];
+  const rank=ranks.find(r=>score>=r.min);
+  document.getElementById('rankBadge').textContent=rank.badge;
+  document.getElementById('finalMessage').textContent=rank.msg;
+  setPhase('Final');
+}
+function restartSim(){
+  currentIdx=0;score=0;streak=0;shuffled.sort(()=>Math.random()-0.5);
+  document.getElementById('stepIndicator').classList.remove('hidden');
+  document.getElementById('progressStrip').classList.remove('hidden');
+  loadScenario(0);
+}
+ 
+buildProgressStrip();
+loadScenario(0);
+ 
+/* ── Game switcher ── */
+function switchGame(game) {
+  const landing = document.getElementById('landingSection');
+  const hero    = document.getElementById('gameHero');
+  const tabsBar = document.getElementById('gameTabsBar');
+ 
+  if (landing && !landing.classList.contains('collapsing')) {
+    // Animate landing + hero out gently
+    landing.classList.add('collapsing');
+    hero.classList.add('collapsing');
+    // After transition completes, hide fully and show tab bar
+    setTimeout(() => {
+      landing.classList.add('hidden');
+      hero.classList.add('hidden');
+      if (tabsBar) {
+        tabsBar.classList.add('visible');
+        // Small delay before fading tab bar in
+        setTimeout(() => tabsBar.classList.add('ready'), 30);
+      }
+    }, 650);
+  } else if (tabsBar && !tabsBar.classList.contains('visible')) {
+    tabsBar.classList.add('visible');
+    setTimeout(() => tabsBar.classList.add('ready'), 30);
+  }
+ 
+  // Toggle game panels
+  document.getElementById('gameAlert').classList.toggle('hidden', game !== 'alert');
+  document.getElementById('gameBogus').classList.toggle('hidden', game !== 'bogus');
+ 
+  // Update slim tab states
+  const slimAlert = document.getElementById('slimAlert');
+  const slimBogus = document.getElementById('slimBogus');
+  if (slimAlert) { slimAlert.classList.toggle('slim-active', game === 'alert'); slimAlert.classList.toggle('slim-inactive', game !== 'alert'); }
+  if (slimBogus) { slimBogus.classList.toggle('slim-active', game === 'bogus'); slimBogus.classList.toggle('slim-inactive', game !== 'bogus'); }
+ 
+  if (game === 'bogus' && !rbInitialised) { rbInit(); rbInitialised = true; }
+ 
+  // Scroll to tab bar after animation
+  setTimeout(() => {
+    if (tabsBar) tabsBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 700);
+}
+</script>
+ 
+ 
+<script>
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║                                                                          ║
+   ║   TRANSIENT CLASSIFIER GAME — ALL EDITABLE CONTENT                       ║
+   ║                                                                          ║
+   ║   Edit CLASSIFIER_DATA below to add/change rounds.                       ║
+   ║   Do NOT edit anything below the MACHINERY line.                         ║
+   ║                                                                          ║
+   ╚══════════════════════════════════════════════════════════════════════════╝
+ 
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │  HOW TO ADD A NEW ROUND                                                 │
+   └─────────────────────────────────────────────────────────────────────────┘
+ 
+   Each round has:
+ 
+   ① label: 'real' or 'bogus'
+       If 'bogus', the game skips step 2 (type classification).
+       If 'real', the player also classifies the type.
+ 
+   ② type: the correct transient type (for real cases only)
+       Options: 'KN' | 'shortGRB' | 'longGRB' | 'SNIa' | 'CCSN' | 'AGN' | 'TDE'
+       Set to null for bogus cases.
+ 
+   ③ typeChoices: array of type codes offered to the player (3–5 options).
+       Always include the correct answer. Pick plausible distractors.
+       Type codes and display names:
+         'KN'      → Kilonova
+         'shortGRB'→ Short GRB afterglow
+         'longGRB' → Long GRB afterglow
+         'SNIa'    → Type Ia supernova
+         'CCSN'    → Core-collapse SN
+         'AGN'     → AGN flare
+         'TDE'     → Tidal disruption event
+ 
+   ④ mlRBScore: 0.0–1.0 — ML confidence that it's REAL (not bogus)
+       0.95 = 95% sure it's real. 0.06 = 94% sure it's bogus.
+ 
+   ⑤ mlTypeScore: 0.0–1.0 — ML confidence in the correct type (real cases only)
+       Set to null for bogus cases.
+ 
+   ⑥ meta{}: what the player sees in the alert metadata panel
+       ra, dec (degrees), mag, filter, hostOffset (arcsec), fwhm (arcsec), note
+ 
+   ⑦ frames{}: canvas-drawn placeholder cutouts
+       science, reference, difference — each has a 'type' and parameters.
+       FRAME TYPES:
+         { type:'source',           sourceMag:0–1, stars:N, noise:0–1 }  bright point source
+         { type:'starfield',        stars:N, noise:0–1 }                  no source
+         { type:'diff_real',        sourceMag:0–1, noise:0–1 }            clean round residual
+         { type:'diff_bogus',       artifact:'dipole'|'hotpix'|'streak'|'edge' }
+         { type:'diff_galaxy',      sourceMag:0–1, noise:0–1 }            source on galaxy
+ 
+       TO USE REAL IMAGES: replace any frame with { type:'png', src:'./path/img.png' }
+ 
+   ════════════════════════════════════════════════════════════════════════════
+   SWAPPING IN REAL DATA — HOW TO DO THIS WITHOUT A DEVELOPER
+   ════════════════════════════════════════════════════════════════════════════
+ 
+   OPTION A — Individual PNG cutouts (simplest, works right now):
+     1. Export your Science/Reference/Difference cutout PNGs from STDPipe or SkyPortal.
+        They should be square (e.g. 200×200 px), same size for all three frames.
+     2. Copy them into a folder next to this HTML file, e.g. ./cutouts/event_name/
+     3. In the round entry, replace the frames section:
+ 
+        frames: {
+          science:    { type:'png', src:'./cutouts/grb251205A/science.png'    },
+          reference:  { type:'png', src:'./cutouts/grb251205A/reference.png'  },
+          difference: { type:'png', src:'./cutouts/grb251205A/difference.png' },
+        },
+ 
+     4. That's it. The canvas drawing is bypassed; the PNG is displayed directly.
+ 
+   OPTION B — Real lightcurve photometry (from STDPipe CSV output):
+     In the lightcurve section, change:
+        lightcurve: { shape:'kilonova', peakMag:19.8, bands:['g','r','i'] },
+     to:
+        lightcurve: {
+          shape: 'custom',
+          xlabel: 'Days post-trigger',
+          bands: ['g','r','i'],
+          points: [
+            { t:0.3, mag:18.7, band:'r', err:0.10 },
+            { t:0.8, mag:19.3, band:'r', err:0.12 },
+            { t:0.3, mag:19.1, band:'g', err:0.15 },
+            // ... one entry per photometry point
+          ],
+        },
+     Format: t = days post-detection, mag = AB magnitude, band = filter letter,
+             err = photometric uncertainty (±mag). All required.
+ 
+   OPTION C — Batch from a JSON database (future, requires brief developer help):
+     If you accumulate many real cutouts and want them to load dynamically,
+     create a file called knc_events.json in the same folder as this HTML:
+     [
+       { "id":"grb251205A", "label":"real", "type":"longGRB", ... },
+       ...
+     ]
+     A developer can then write a small loader (< 20 lines) that reads this file
+     and populates CLASSIFIER_DATA automatically. The data structure here is
+     already designed to accept that format without any other changes.
+ 
+   ════════════════════════════════════════════════════════════════════════════
+ 
+   ⑧ lightcurve{}: parametric lightcurve drawn per transient type
+       shape: 'kilonova' | 'grb_short' | 'grb_long' | 'snia' | 'ccsn' | 'agn' | 'tde' | 'bogus'
+       peakMag: magnitude at peak brightness
+       bands: array of filter names to show (e.g. ['g','r','i'])
+       Notes come from parameterized templates; no manual point entry needed.
+       TO USE REAL DATA: set shape:'custom' and provide points:[{t,mag,band,err}]
+ 
+   ⑨ outcomes{}: feedback text
+       rbCorrect, rbWrong — for the real/bogus step
+       typeCorrect, typeWrong — for the type step (real cases only)
+       fact — shown regardless, in the science box
+ 
+   ═══════════════════════════════════════════════════════════════════════════ */
+ 
+const CLASSIFIER_DATA = [
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 1 — REAL: Kilonova candidate (GRB 230307A style)
+     Rapidly fading, red, offset ~2″ from host. Fast rise, blue-to-red evolution.
+     typeChoices: KN vs shortGRB vs CCSN — the classic merger ambiguity
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'real',
+    type: 'KN',
+    typeChoices: ['KN','shortGRB','CCSN','SNIa'],
+    mlRBScore:   0.91,
+    mlTypeScore: 0.74,
+    meta: {
+      ra: 60.86, dec: -75.38, mag: 20.5, filter: 'r',
+      hostOffset: 2.1, fwhm: 1.7,
+      note: 'Fast fading ~1.5 mag/day; red g−r=+1.2 at T+3d; low-z host confirmed',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.55, stars:32, noise:0.10 },
+      reference: { type:'starfield', stars:32, noise:0.08 },
+      difference:{ type:'diff_real', sourceMag:0.53, noise:0.09 },
+    },
+    lightcurve: { shape:'kilonova', peakMag:19.8, bands:['g','r','i'] },
+    outcomes: {
+      rbCorrect: 'Correct — the clean Difference residual and absence in Reference confirm a real new source.',
+      rbWrong:   'This was real. The Difference frame shows a clean round positive blob — no dipole, no streak. A real source absent from Reference.',
+      typeCorrect:'Correct — kilonova. The key signatures: rapid fading (~1.5 mag/day), rapid colour evolution from blue to red (g−r rising), and a small host offset consistent with a binary merger ejected from its host.',
+      typeWrong:  'This was a kilonova. The distinguishing features: (1) fading rate ~1.5 mag/day — faster than most supernovae, (2) colour turning red within 3 days — the "red component" from heavy r-process elements, (3) the host offset of 2.1″ favours a compact binary rather than a star-forming region.',
+      fact: '<strong>Kilonova diagnostics:</strong> KNe peak within hours, fade in days, and rapidly redden as the blue lanthanide-free ejecta is overtaken by the red r-process-rich component. GRB 230307A at z=0.065 showed all three signatures and was confirmed by JWST. The blue-to-red colour evolution is the single most discriminating feature vs. supernovae.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 2 — BOGUS: Dipole from PSF mismatch near bright host
+     typeChoices: none (bogus — skip step 2)
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'bogus',
+    type: null,
+    typeChoices: [],
+    mlRBScore:   0.09,
+    mlTypeScore: null,
+    meta: {
+      ra: 224.1, dec: 31.8, mag: 19.3, filter: 'r',
+      hostOffset: 0.2, fwhm: 2.5,
+      note: 'Residual 0.2″ from bright nucleus; seeing variable; dipole visible in diff',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.48, stars:28, noise:0.14 },
+      reference: { type:'source',    sourceMag:0.52, stars:28, noise:0.10 },
+      difference:{ type:'diff_bogus', artifact:'dipole' },
+    },
+    lightcurve: { shape:'bogus', peakMag:19.3, bands:['r'] },
+    outcomes: {
+      rbCorrect: 'Correct — dipole artifact. The paired bright/dark blobs in Difference are caused by PSF mismatch, not a new source.',
+      rbWrong:   'This was bogus. The Difference frame shows a dipole: a bright lobe paired with a dark shadow. This is the signature of PSF mismatch — the star appears to have "moved" between exposures because the PSF shape changed.',
+      typeCorrect: null,
+      typeWrong: null,
+      fact: '<strong>The dipole:</strong> When the science PSF is wider or narrower than the reference PSF, a static star leaves a positive residual on one side and negative on the other during subtraction. The effect is worst near bright galaxy nuclei where the background gradient amplifies any shape mismatch. The KNC pipeline flags sources within 0.5″ of a bright nucleus automatically.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 3 — REAL: Short GRB afterglow (GRB 230812B style)
+     Rapid power-law fading, r~19 at T+few hours, small host offset
+     typeChoices: shortGRB vs KN vs longGRB — the merger/collapsar ambiguity
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'real',
+    type: 'shortGRB',
+    typeChoices: ['shortGRB','KN','longGRB','CCSN'],
+    mlRBScore:   0.96,
+    mlTypeScore: 0.82,
+    meta: {
+      ra: 272.27, dec: 15.11, mag: 19.2, filter: 'r',
+      hostOffset: 3.4, fwhm: 1.9,
+      note: 'Power-law fading α=1.1; early detection T+2.5hr; Swift-BAT T90=0.6s',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.72, stars:35, noise:0.09 },
+      reference: { type:'starfield', stars:35, noise:0.07 },
+      difference:{ type:'diff_real', sourceMag:0.70, noise:0.08 },
+    },
+    lightcurve: { shape:'grb_short', peakMag:18.5, bands:['r','i'] },
+    outcomes: {
+      rbCorrect: 'Correct — bright, clean, clearly real. The Difference frame has a textbook round positive residual.',
+      rbWrong:   'This was real. Bright source in Science, absent from Reference, clean residual in Difference. Classic real detection.',
+      typeCorrect:'Correct — short GRB afterglow. The power-law fading (α~1.1), rapid onset, and Swift T90=0.6s confirm this is a compact merger afterglow rather than a collapsar or supernova.',
+      typeWrong:  'This was a short GRB afterglow. Key features: (1) power-law fading — more rapid and smooth than a SN, (2) T90=0.6s from Swift-BAT confirms a compact merger progenitor, (3) the colour stays roughly constant (unlike a KN which reddens rapidly), (4) the offset of 3.4″ is consistent with a neutron star kicked from its host.',
+      fact: '<strong>sGRB vs KN:</strong> At early times, the optical afterglow of a short GRB and a kilonova can look similar. The discriminators are: (1) the afterglow is bluer and fades as a power-law, (2) a kilonova has a characteristic "bump" in the red/NIR after ~2 days as the r-process ejecta reprocesses radiation, (3) X-ray data showing a decaying afterglow strongly favours sGRB. GRB 230812B showed a clear power-law decline with no KN bump.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 4 — REAL: Type Ia supernova (classic)
+     Slow rise ~15 days to peak, Phillips relation, elliptical host offset
+     typeChoices: SNIa vs CCSN vs KN vs AGN
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'real',
+    type: 'SNIa',
+    typeChoices: ['SNIa','CCSN','KN','AGN'],
+    mlRBScore:   0.89,
+    mlTypeScore: 0.85,
+    meta: {
+      ra: 150.2, dec: 20.4, mag: 18.8, filter: 'r',
+      hostOffset: 8.2, fwhm: 1.6,
+      note: 'Rising ~0.1 mag/day; red elliptical host; no X-ray detection; Si II 6355 expected',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.62, stars:38, noise:0.10 },
+      reference: { type:'starfield', stars:38, noise:0.08 },
+      difference:{ type:'diff_real', sourceMag:0.60, noise:0.09 },
+    },
+    lightcurve: { shape:'snia', peakMag:18.4, bands:['g','r','i'] },
+    outcomes: {
+      rbCorrect: 'Correct — real source, clearly absent from Reference with a clean Difference residual.',
+      rbWrong:   'This was real. Clean positive residual in Difference, absent from Reference. A real new source.',
+      typeCorrect:'Correct — Type Ia supernova. The slow rise (~15 days to peak), the secondary shoulder in the i-band lightcurve, the large host offset in an elliptical galaxy, and no X-ray emission are all consistent with a thermonuclear SN Ia.',
+      typeWrong:  'This was a Type Ia supernova. Key features: (1) slow rise time ~15 days — much slower than a KN or GRB afterglow, (2) characteristic secondary bump in the r/i-band around +20 days post-peak — a unique SN Ia signature caused by iron-group element recombination, (3) red elliptical host — consistent with SN Ia from old stellar populations, (4) no associated GRB or X-ray emission.',
+      fact: '<strong>SN Ia timing:</strong> The slow rise (15d) and decline (15–30d) of SN Ia put them on a completely different timescale from kilonovae (days) or GRB afterglows (hours–days). The i-band secondary maximum around +20d is one of the most distinctive features — no other transient type produces this. Learning to recognize it by eye is a core image analyst skill.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 5 — BOGUS: Hot pixel / cosmic ray
+     Sub-PSF FWHM is the dead giveaway
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'bogus',
+    type: null,
+    typeChoices: [],
+    mlRBScore:   0.03,
+    mlTypeScore: null,
+    meta: {
+      ra: 288.3, dec: 19.8, mag: 17.5, filter: 'r',
+      hostOffset: 15.2, fwhm: 0.5,
+      note: 'FWHM=0.5″ << seeing 1.8″; single-epoch detection; no host galaxy within 15″',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.92, stars:30, noise:0.07, sharp:true },
+      reference: { type:'starfield', stars:30, noise:0.06 },
+      difference:{ type:'diff_bogus', artifact:'hotpix' },
+    },
+    lightcurve: { shape:'bogus', peakMag:17.5, bands:['r'] },
+    outcomes: {
+      rbCorrect: 'Correct — the FWHM of 0.5″ is far below the 1.8″ seeing. Nothing real can be sharper than the atmosphere allows.',
+      rbWrong:   'This was bogus. The FWHM of 0.5″ vs 1.8″ seeing is the key: a real astronomical source must be blurred by the atmosphere to at least the PSF size. A sub-PSF object is a detector artifact.',
+      typeCorrect: null,
+      typeWrong: null,
+      fact: '<strong>The PSF size rule:</strong> The atmosphere blurs all light to at least the "seeing" FWHM — typically 1–3″ for ground-based telescopes. Any source with FWHM significantly smaller than the seeing is not astronomical: it\'s a hot pixel, cosmic ray, or readout artifact. This is one of the most reliable and fastest checks in visual inspection — no image comparison needed.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 6 — REAL: AGN flare / nuclear transient
+     Coincident with nucleus, slow/irregular variability, large amplitude
+     typeChoices: AGN vs TDE vs CCSN vs SNIa
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'real',
+    type: 'AGN',
+    typeChoices: ['AGN','TDE','CCSN','SNIa'],
+    mlRBScore:   0.82,
+    mlTypeScore: 0.68,
+    meta: {
+      ra: 40.3, dec: 20.1, mag: 19.1, filter: 'r',
+      hostOffset: 0.1, fwhm: 1.8,
+      note: 'Nuclear; prior variability in archival data; slow rise >30 days; no spectral features yet',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.58, stars:35, noise:0.12 },
+      reference: { type:'source',    sourceMag:0.40, stars:35, noise:0.09 },
+      difference:{ type:'diff_real', sourceMag:0.38, noise:0.11 },
+    },
+    lightcurve: { shape:'agn', peakMag:18.8, bands:['r','g'] },
+    outcomes: {
+      rbCorrect: 'Correct — real variability. Both Science and Reference show the source, but the Difference residual confirms the source has brightened.',
+      rbWrong:   'This was real. Note that the source appears in BOTH Science and Reference — it\'s a known object that has brightened. The Difference residual is real new flux, not a new source from scratch.',
+      typeCorrect:'Correct — AGN flare. The nuclear position (0.1″ offset), prior variability in archival data, slow irregular rise, and absence of sharp spectral features distinguish this from a TDE or supernova.',
+      typeWrong:  'This was an AGN flare. Key features: (1) 0.1″ nuclear offset — consistent with the AGN itself, (2) prior variability — AGN have been varying before this event, (3) slow, irregular rise without a clear peak — unlike TDE which rises more smoothly, (4) source visible in the Reference frame means this is a known varying object, not a new transient appearing in a previously empty field.',
+      fact: '<strong>AGN vs TDE:</strong> Both occur in galaxy nuclei, but TDEs are one-time events with a characteristic t⁻⁵/³ power-law decline after peak, while AGN variability is stochastic and recurrent. The host galaxy type matters too — TDEs prefer quiescent galaxies (E+A/post-starburst), while AGN can occur in any galaxy with an active nucleus. Archival light curves are the most reliable discriminator.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 7 — REAL: Core-collapse supernova (Type II-P)
+     Slow rise, plateau phase, star-forming host, larger offset
+     typeChoices: CCSN vs SNIa vs KN vs longGRB
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'real',
+    type: 'CCSN',
+    typeChoices: ['CCSN','SNIa','KN','longGRB'],
+    mlRBScore:   0.93,
+    mlTypeScore: 0.79,
+    meta: {
+      ra: 197.0, dec: -14.1, mag: 19.5, filter: 'r',
+      hostOffset: 5.8, fwhm: 2.1,
+      note: 'Offset in blue spiral arm; slow rise 20+ days; plateau visible in r-band; no GRB trigger',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.52, stars:40, noise:0.11 },
+      reference: { type:'starfield', stars:40, noise:0.09 },
+      difference:{ type:'diff_real', sourceMag:0.50, noise:0.10 },
+    },
+    lightcurve: { shape:'ccsn', peakMag:19.1, bands:['g','r','i'] },
+    outcomes: {
+      rbCorrect: 'Correct — clean Difference residual, absent from Reference. Genuinely new source.',
+      rbWrong:   'This was real. Standard real detection: present in Science, absent in Reference, clean round residual in Difference.',
+      typeCorrect:'Correct — core-collapse supernova (Type II-P). The plateau in the r-band lightcurve lasting ~80 days, the position in a blue spiral arm, and the lack of a GRB trigger all point to a massive star collapse rather than a thermonuclear event.',
+      typeWrong:  'This was a core-collapse supernova (Type II-P). Key features: (1) the plateau in the r-band — the hallmark of H-rich Type II-P SNe, caused by hydrogen recombination maintaining constant luminosity, (2) position in a blue star-forming spiral arm — consistent with a short-lived massive star progenitor, (3) no GRB trigger — this is not a GRB-associated collapsar, just a nearby CCSN, (4) slow rise distinguishes it from the faster-evolving KN.',
+      fact: '<strong>CCSN timescales:</strong> Type II-P supernovae have a ~100 day plateau in their lightcurve — one of the longest-lasting transient features in optical astronomy. This makes them easy to rule out for KN follow-up: if the source is still bright after 2 weeks at constant magnitude, it\'s not a kilonova. The r-process in kilonovae depletes after ~7 days. A plateau candidate is a CCSN until proven otherwise.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 8 — REAL: Tidal disruption event
+     Smooth rise over weeks, UV-bright, nuclear position, t^-5/3 decline
+     typeChoices: TDE vs AGN vs CCSN vs SNIa
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'real',
+    type: 'TDE',
+    typeChoices: ['TDE','AGN','CCSN','SNIa'],
+    mlRBScore:   0.87,
+    mlTypeScore: 0.71,
+    meta: {
+      ra: 25.0, dec: 24.2, mag: 18.9, filter: 'g',
+      hostOffset: 0.3, fwhm: 1.7,
+      note: 'Quiescent E+A host; UV-bright; smooth rise ~40 days; t^-5/3 decline consistent',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.65, stars:33, noise:0.10 },
+      reference: { type:'starfield', stars:33, noise:0.08 },
+      difference:{ type:'diff_real', sourceMag:0.63, noise:0.09 },
+    },
+    lightcurve: { shape:'tde', peakMag:18.5, bands:['g','r'] },
+    outcomes: {
+      rbCorrect: 'Correct — real new source with clean Difference residual.',
+      rbWrong:   'This was real. Absent from Reference, clean Difference. Real new source.',
+      typeCorrect:'Correct — tidal disruption event. The quiescent E+A host (no prior AGN activity), smooth t⁻⁵/³ power-law decline, UV-bright colour, and nuclear position all distinguish this TDE from an AGN flare or supernova.',
+      typeWrong:  'This was a TDE. The key discriminators: (1) quiescent E+A (post-starburst) host — TDEs strongly prefer these, while AGN occur in active nuclei, (2) smooth power-law decline following t⁻⁵/³ — the theoretical expectation for stellar debris fallback onto the black hole, (3) UV-bright (g-band brightening stronger than r) — consistent with the high-temperature accretion disc, (4) first time the nucleus has been seen at this brightness — rules out AGN variability.',
+      fact: '<strong>Why E+A hosts?</strong> TDEs are over-represented in "E+A" or "post-starburst" galaxies — galaxies that recently had a burst of star formation that has now stopped. The leading explanation is that dense nuclear stellar cusps in these galaxies send more stars onto loss-cone orbits intersecting the black hole. This host galaxy preference is one of the strongest TDE classification features available before spectroscopy.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 9 — BOGUS: Satellite streak
+     FWHM >> seeing, linear morphology
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'bogus',
+    type: null,
+    typeChoices: [],
+    mlRBScore:   0.05,
+    mlTypeScore: null,
+    meta: {
+      ra: 333.1, dec: 31.6, mag: 16.3, filter: 'r',
+      hostOffset: 9.4, fwhm: 5.1,
+      note: 'FWHM=5.1″ >> seeing 2.0″; linear morphology; single detection; no host nearby',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.78, stars:30, noise:0.08, streak:true },
+      reference: { type:'starfield', stars:30, noise:0.07 },
+      difference:{ type:'diff_bogus', artifact:'streak' },
+    },
+    lightcurve: { shape:'bogus', peakMag:16.3, bands:['r'] },
+    outcomes: {
+      rbCorrect: 'Correct — FWHM 5.1″ vs 2.0″ seeing, linear morphology. Classic satellite or asteroid streak.',
+      rbWrong:   'This was bogus — a satellite or asteroid streak. The FWHM of 5.1″ is 2.5× the seeing. Any source wider than the PSF in a non-radial direction is a moving object or detector artifact, not an astrophysical point source.',
+      typeCorrect: null,
+      typeWrong: null,
+      fact: '<strong>Streaks in the Rubin era:</strong> With Rubin/LSST taking ~15s exposures and thousands of new satellite constellations (Starlink etc.), streaks will affect a significant fraction of KNC images. The pipeline masks known satellite tracks, but unmasked streaks are frequent. A source with FWHM >> seeing in one axis is always bogus unless the elongation matches the PSF shape (which is round for most telescopes).',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ROUND 10 — REAL: Long GRB afterglow at z~1 (collapsar)
+     Rapidly fading, blue, no associated kilonova expected, high-z host
+     typeChoices: longGRB vs KN vs shortGRB vs CCSN
+  ════════════════════════════════════════════════════════════════════════ */
+  {
+    label: 'real',
+    type: 'longGRB',
+    typeChoices: ['longGRB','KN','shortGRB','CCSN'],
+    mlRBScore:   0.95,
+    mlTypeScore: 0.88,
+    meta: {
+      ra: 200.3, dec: 29.9, mag: 18.4, filter: 'r',
+      hostOffset: 0.8, fwhm: 1.8,
+      note: 'Swift T90=45s; redshift z~1 estimated from host; power-law α~1.0; no KN bump',
+    },
+    frames: {
+      science:   { type:'source',    sourceMag:0.80, stars:36, noise:0.09 },
+      reference: { type:'starfield', stars:36, noise:0.07 },
+      difference:{ type:'diff_real', sourceMag:0.78, noise:0.08 },
+    },
+    lightcurve: { shape:'grb_long', peakMag:17.8, bands:['g','r','i'] },
+    outcomes: {
+      rbCorrect: 'Correct — bright, clean, real. Textbook real detection.',
+      rbWrong:   'This was real. Bright absent-from-Reference source with clean Difference residual. Real new transient.',
+      typeCorrect:'Correct — long GRB afterglow (collapsar). T90=45s confirms a massive star progenitor. Power-law fading without a red KN bump, and the high-z host inconsistent with a nearby merger.',
+      typeWrong:  'This was a long GRB afterglow. Key features: (1) T90=45s — well into the "long" category (>2s), indicating a collapsar (massive star) not a compact merger, (2) smooth power-law fading without the red bump seen in KN events, (3) estimated z~1 — too distant for a merger-origin KN to be detectable with small apertures, (4) blue colour throughout — no reddening from r-process lanthanides.',
+      fact: '<strong>Long vs short GRB classification:</strong> The T90 duration threshold (2s) separates collapsar long GRBs from compact binary short GRBs, but ~15% overlap. For KNC, the key question is: is there a kilonova? Long GRBs at z>0.2 essentially never produce detectable KNe. Short GRBs at z<0.2 are the primary KN targets. The combination of T90, redshift, and optical colour evolution is the classification triple that guides follow-up priority.',
+    },
+  },
+ 
+  /* ════════════════════════════════════════════════════════════════════════
+     ADD NEW ROUNDS BELOW THIS LINE
+     Copy any round block above (from { to the matching },)
+     and paste it before the closing ];
+     Key fields to update: label, type, typeChoices, mlRBScore, mlTypeScore,
+     meta, frames, lightcurve shape, and all outcome text.
+  ════════════════════════════════════════════════════════════════════════ */
+ 
+];
+ 
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║   MACHINERY — DO NOT EDIT BELOW THIS LINE                               ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+ 
+const TYPE_LABELS = {
+  KN:       'Kilonova',
+  shortGRB: 'Short GRB afterglow',
+  longGRB:  'Long GRB afterglow',
+  SNIa:     'Type Ia supernova',
+  CCSN:     'Core-collapse SN',
+  AGN:      'AGN flare',
+  TDE:      'Tidal disruption event',
+};
+ 
+let rbInitialised = false;
+let rbIdx = 0, rbRBScore = 0, rbTypeScore = 0, rbTypeTotal = 0;
+const RB_TOTAL = CLASSIFIER_DATA.length;
+const rbShuffled = [...CLASSIFIER_DATA].sort(() => Math.random() - 0.5);
+let rbCurrentRBVote = null;
+ 
+/* ── Steps ── */
+function rbUpdateSteps(active) {
+  for (let n = 1; n <= 4; n++) {
+    const el = document.getElementById('rbStep'+n);
+    const line = document.getElementById('rbLine'+n);
+    if (!el) continue;
+    el.className = 'step-item';
+    if      (n < active) { el.classList.add('done');   if(line) line.classList.add('done'); }
+    else if (n === active){ el.classList.add('active'); if(line) line.classList.remove('done'); }
+    else                  {                             if(line) line.classList.remove('done'); }
+  }
+}
+ 
+/* ── Phase switcher ── */
+function rbSetPhase(p) {
+  ['View','RB','Type','Outcome','Final'].forEach(x =>
+    document.getElementById('rbPhase'+x)?.classList.toggle('hidden', x !== p)
+  );
+}
+ 
+/* ── Score bar ── */
+function rbUpdateScore() {
+  document.getElementById('rbScoreDisplay').textContent = rbRBScore + ' / ' + rbIdx;
+  document.getElementById('rbSetDisplay').textContent   = Math.min(rbIdx+1, RB_TOTAL) + ' / ' + RB_TOTAL;
+  const typePct = rbTypeTotal > 0 ? Math.round(rbTypeScore/rbTypeTotal*100)+'%' : '—';
+  document.getElementById('rbTypeDisplay').textContent  = typePct;
+}
+ 
+/* ── Progress dots ── */
+function rbBuildStrip() {
+  const strip = document.getElementById('rbProgressStrip');
+  strip.innerHTML = '';
+  for (let i = 0; i < RB_TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'prog-dot'; d.id = 'rbdot-'+i;
+    strip.appendChild(d);
+  }
+  const lbl = document.createElement('span');
+  lbl.className = 'prog-label'; lbl.id = 'rbProgLabel';
+  strip.appendChild(lbl);
+}
+ 
+function rbUpdateStrip(active) {
+  for (let i = 0; i < RB_TOTAL; i++) {
+    const d = document.getElementById('rbdot-'+i);
+    if (!d) continue;
+    d.className = 'prog-dot';
+    if (i < active) d.classList.add('done');
+    else if (i === active) d.classList.add('current');
+  }
+  const lbl = document.getElementById('rbProgLabel');
+  if (lbl) lbl.textContent = 'Round '+(active+1)+' of '+RB_TOTAL;
+}
+ 
+/* ── Canvas frame drawing ── */
+function drawFrame(canvas, spec, forcePx) {
+  if (!canvas) return;
+  const S = forcePx || canvas.offsetWidth || 130;
+  canvas.width = S; canvas.height = S;
+  const ctx = canvas.getContext('2d');
+ 
+  if (spec.type === 'png') {
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0, S, S);
+    img.src = spec.src;
+    return;
+  }
+ 
+  let seed = Math.round((spec.sourceMag||0.5)*997+(spec.stars||30)*13+(spec.noise||0.1)*1337+S*7);
+  const rng = ()=>{ seed^=seed<<13; seed^=seed>>7; seed^=seed<<17; return(seed>>>0)/4294967296; };
+ 
+  // Dark sky background
+  ctx.fillStyle='#06040F'; ctx.fillRect(0,0,S,S);
+ 
+  // Noise floor
+  const noise = spec.noise||0.07;
+  for(let i=0;i<S*S*0.25;i++){
+    const x=rng()*S,y=rng()*S,v=rng()*noise*220;
+    ctx.fillStyle=`rgba(160,150,230,${v/255*0.45})`;
+    ctx.fillRect(x,y,1,1);
+  }
+ 
+  // Background stars
+  const nS = spec.stars||30;
+  for(let i=0;i<nS;i++){
+    const x=rng()*S,y=rng()*S,b=0.12+rng()*0.55,r=0.4+rng()*1.1;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(215,210,255,${b})`;ctx.fill();
+  }
+ 
+  if(spec.type==='starfield') return;
+ 
+  // Point source
+  if(spec.sourceMag && (spec.type==='source'||spec.type==='diff_galaxy')){
+    const cx=S/2+(rng()-0.5)*S*0.04, cy=S/2+(rng()-0.5)*S*0.04;
+    const bright=spec.sourceMag;
+    if(spec.sharp){
+      // Hot pixel — sub-PSF
+      ctx.fillStyle=`rgba(255,255,180,${bright})`;ctx.fillRect(cx-1,cy-1,3,3);
+    } else if(spec.streak){
+      // Satellite streak
+      const ang=-0.3+rng()*0.6,len=S*0.48;
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(ang);
+      const sg=ctx.createLinearGradient(-len/2,0,len/2,0);
+      sg.addColorStop(0,'rgba(255,255,200,0)');
+      sg.addColorStop(0.25,`rgba(255,255,200,${bright})`);
+      sg.addColorStop(0.75,`rgba(255,255,200,${bright})`);
+      sg.addColorStop(1,'rgba(255,255,200,0)');
+      ctx.fillStyle=sg;ctx.fillRect(-len/2,-2.5,len,5);ctx.restore();
+    } else {
+      // Normal PSF
+      const r=2.2+(1-bright)*2.5;
+      const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*3.5);
+      g.addColorStop(0,`rgba(255,255,220,${Math.min(1,bright*1.15)})`);
+      g.addColorStop(0.35,`rgba(210,200,255,${bright*0.55})`);
+      g.addColorStop(1,'rgba(90,80,180,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r*3.5,0,Math.PI*2);ctx.fill();
+    }
+  }
+ 
+  // Difference frames
+  if(spec.type==='diff_real'||spec.type==='diff_galaxy'){
+    ctx.fillStyle='rgba(5,3,16,0.72)';ctx.fillRect(0,0,S,S);
+    for(let i=0;i<S*S*0.12;i++){
+      const x=rng()*S,y=rng()*S,v=rng()*(spec.noise||0.08)*55;
+      ctx.fillStyle=`rgba(100,85,195,${v/255})`;ctx.fillRect(x,y,1,1);
+    }
+    const cx=S/2+(rng()-0.5)*S*0.04,cy=S/2+(rng()-0.5)*S*0.04;
+    const r=1.8+(spec.sourceMag||0.5)*3.2;
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*3.2);
+    g.addColorStop(0,`rgba(255,255,210,${Math.min(1,(spec.sourceMag||0.5)*1.1)})`);
+    g.addColorStop(0.45,`rgba(190,180,255,${(spec.sourceMag||0.5)*0.45})`);
+    g.addColorStop(1,'rgba(90,75,190,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r*3.2,0,Math.PI*2);ctx.fill();
+  }
+ 
+  if(spec.type==='diff_bogus'){
+    ctx.fillStyle='rgba(5,3,16,0.72)';ctx.fillRect(0,0,S,S);
+    for(let i=0;i<S*S*0.1;i++){
+      const x=rng()*S,y=rng()*S,v=rng()*38;
+      ctx.fillStyle=`rgba(90,75,175,${v/255})`;ctx.fillRect(x,y,1,1);
+    }
+    const cx=S/2,cy=S/2,art=spec.artifact;
+    if(art==='dipole'){
+      const off=S*0.09;
+      const gp=ctx.createRadialGradient(cx+off,cy,0,cx+off,cy,S*0.14);
+      gp.addColorStop(0,'rgba(255,240,175,0.92)');gp.addColorStop(1,'rgba(200,180,255,0)');
+      ctx.fillStyle=gp;ctx.beginPath();ctx.arc(cx+off,cy,S*0.14,0,Math.PI*2);ctx.fill();
+      const gn=ctx.createRadialGradient(cx-off,cy,0,cx-off,cy,S*0.14);
+      gn.addColorStop(0,'rgba(5,3,16,0.97)');gn.addColorStop(1,'rgba(5,3,16,0)');
+      ctx.fillStyle=gn;ctx.beginPath();ctx.arc(cx-off,cy,S*0.14,0,Math.PI*2);ctx.fill();
+    } else if(art==='hotpix'){
+      ctx.fillStyle='rgba(255,255,140,0.97)';ctx.fillRect(cx-1,cy-1,3,3);
+      ctx.fillStyle='rgba(255,255,140,0.35)';ctx.fillRect(cx-2,cy-2,5,5);
+    } else if(art==='streak'){
+      const ang=-0.28+rng()*0.56,len=S*0.52;
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(ang);
+      const sg=ctx.createLinearGradient(-len/2,0,len/2,0);
+      sg.addColorStop(0,'rgba(255,240,175,0)');
+      sg.addColorStop(0.25,'rgba(255,240,175,0.88)');
+      sg.addColorStop(0.75,'rgba(255,240,175,0.88)');
+      sg.addColorStop(1,'rgba(255,240,175,0)');
+      ctx.fillStyle=sg;ctx.fillRect(-len/2,-2.5,len,5);ctx.restore();
+    } else if(art==='edge'){
+      const cx2=Math.round(S*0.14+rng()*S*0.18);
+      ctx.fillStyle='rgba(255,225,145,0.72)';ctx.fillRect(cx2,0,2,S);
+      ctx.fillStyle='rgba(255,225,145,0.18)';ctx.fillRect(cx2-2,0,6,S);
+    }
+  }
+}
+ 
+/* ── Lightcurve drawing ── */
+function drawLightcurve(canvas, spec) {
+  if (!canvas) return;
+  const W = canvas.offsetWidth || 860;
+  const H = 160;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#0A0818'; ctx.fillRect(0,0,W,H);
+ 
+  const pad = {l:44, r:16, t:12, b:30};
+  const pW = W-pad.l-pad.r, pH = H-pad.t-pad.b;
+ 
+  // Grid
+  ctx.strokeStyle='rgba(123,111,212,0.12)';ctx.lineWidth=0.5;ctx.setLineDash([3,3]);
+  for(let i=1;i<=4;i++){
+    const y=pad.t+i*(pH/4);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+ 
+  // Axes
+  ctx.strokeStyle='rgba(123,111,212,0.35)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+pH);ctx.lineTo(pad.l+pW,pad.t+pH);ctx.stroke();
+ 
+  const bandColors = {g:'#302682',r:'#ff3d79',i:'#e07b00',z:'#00b8a0'};
+  const shape = spec.shape;
+  const peak = spec.peakMag || 19.0;
+ 
+  // Parametric lightcurve functions (t in days from discovery)
+  function magAt(t, band, shapeType) {
+    const bi = ['g','r','i','z'].indexOf(band);
+    const offset = [0, 0.3, 0.6, 0.9][bi] || 0; // band offset from r
+ 
+    if(shapeType==='kilonova'){
+      // Rapid rise <0.5d, steep decline ~1.5 mag/day, rapid reddening
+      const rise = t < 0.5 ? (0.5-t)*3 : 0;
+      const fall = t > 0.5 ? (t-0.5)*1.4 : 0;
+      const redden = band==='g' ? t*0.5 : band==='i' ? -t*0.2 : 0;
+      return peak + offset + rise + fall + redden;
+    }
+    if(shapeType==='grb_short'){
+      // Power-law decay from detection; alpha~1.1
+      const t0 = Math.max(t, 0.01);
+      return peak + offset + 2.5*1.1*Math.log10(t0/0.1);
+    }
+    if(shapeType==='grb_long'){
+      // Power-law decay alpha~1.0 with jet break at ~2d
+      const t0=Math.max(t,0.01);
+      const alpha = t < 2 ? 1.0 : 1.8;
+      const base = peak + 2.5*alpha*Math.log10(t0/0.1);
+      return base + offset;
+    }
+    if(shapeType==='snia'){
+      // Slow rise ~15d, shoulder at +20d (secondary max in i)
+      const tPeak = 15;
+      const rise = t < tPeak ? (tPeak-t)*0.08 : 0;
+      const fall = t > tPeak ? (t-tPeak)*0.05 : 0;
+      // i-band secondary maximum bump around +30d
+      const secondaryBump = band==='i' && t > 20 && t < 40
+        ? -0.4*Math.exp(-Math.pow(t-30,2)/80) : 0;
+      return peak + offset + rise + fall + secondaryBump;
+    }
+    if(shapeType==='ccsn'){
+      // Type II-P: slow rise, then plateau ~80d, then decline
+      const tPeak=20;
+      const rise = t < tPeak ? (tPeak-t)*0.06 : 0;
+      const plateau = t>=tPeak && t<80 ? 0 : 0;
+      const fall = t > 80 ? (t-80)*0.03 : 0;
+      return peak + offset + rise + plateau + fall;
+    }
+    if(shapeType==='agn'){
+      // Slow irregular rise with scatter
+      const drift = t*0.025;
+      const seed2 = Math.round(t*77+band.charCodeAt(0)*13);
+      const jitter = ((seed2*2654435761)>>>0)/4294967296 * 0.3 - 0.15;
+      return peak + offset + drift + jitter;
+    }
+    if(shapeType==='tde'){
+      // Smooth Gaussian rise over 40d, then t^-5/3 decline
+      const tPeak=40;
+      if(t <= tPeak){
+        return peak + offset + Math.pow((tPeak-t)/tPeak,2)*2.5;
+      } else {
+        return peak + offset + 2.5*(5/3)*Math.log10(t/tPeak);
+      }
+    }
+    if(shapeType==='bogus'){
+      // Single detection — flat/empty before and after
+      return t < 0.2 || t > 0.8 ? 99 : peak + offset;
+    }
+    return peak + offset + t*0.05;
+  }
+ 
+  // Set time range by shape
+  const tRanges = {
+    kilonova:[0,10], grb_short:[0.1,10], grb_long:[0.1,15],
+    snia:[0,60], ccsn:[0,100], agn:[0,60], tde:[0,90], bogus:[0,5],
+    custom:[0,30]  // overridden below for real data
+  };
+ 
+  // For custom shape, derive range from the actual points
+  let tMin, tMax, magMin, magMax;
+  if(shape==='custom' && spec.points && spec.points.length>0) {
+    const tVals=spec.points.map(p=>p.t);
+    const mVals=spec.points.map(p=>p.mag);
+    tMin=Math.max(0, Math.min(...tVals)-0.2);
+    tMax=Math.max(...tVals)*1.1;
+    magMin=Math.min(...mVals)-0.8;
+    magMax=Math.max(...mVals)+0.8;
+  } else {
+    [tMin, tMax] = tRanges[shape] || [0,30];
+    magMin = peak - 1.5;
+    magMax = peak + 3.5;
+  }
+ 
+  const tx = t => pad.l + (Math.log10(Math.max(t,tMin+0.001))-Math.log10(tMin+0.001))
+    / (Math.log10(tMax)-Math.log10(tMin+0.001)) * pW;
+  const useLog = (shape.includes('grb') || shape==='tde') && shape!=='custom';
+  const txLinear = t => pad.l + (t-tMin)/(tMax-tMin)*pW;
+  const txFn = useLog ? tx : txLinear;
+  const ty = m => pad.t + (m-magMin)/(magMax-magMin)*pH;
+ 
+  // Draw band curves — custom shape uses real points, parametric uses magAt()
+  const bands = spec.bands || ['r'];
+  if(shape==='custom' && spec.points) {
+    // Group points by band
+    const byBand = {};
+    spec.points.forEach(p=>{
+      if(!byBand[p.band]) byBand[p.band]=[];
+      byBand[p.band].push(p);
+    });
+    Object.entries(byBand).forEach(([band, pts])=>{
+      const col=bandColors[band]||'#7B6FD4';
+      pts.sort((a,b)=>a.t-b.t);
+      // Connect-the-dots line
+      ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([3,2]);
+      pts.forEach((p,i)=>i===0?ctx.moveTo(txFn(p.t),ty(p.mag)):ctx.lineTo(txFn(p.t),ty(p.mag)));
+      ctx.stroke();ctx.setLineDash([]);
+      // Data points with error bars
+      pts.forEach(p=>{
+        const x=txFn(p.t),y=ty(p.mag),e=p.err||0.1;
+        ctx.strokeStyle=col;ctx.lineWidth=1.2;
+        ctx.beginPath();ctx.moveTo(x,ty(p.mag-e));ctx.lineTo(x,ty(p.mag+e));ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x-3,ty(p.mag-e));ctx.lineTo(x+3,ty(p.mag-e));ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x-3,ty(p.mag+e));ctx.lineTo(x+3,ty(p.mag+e));ctx.stroke();
+        ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+      });
+    });
+  } else {
+    // Parametric shapes — draw synthetic curves
+    bands.forEach(band => {
+    const col = bandColors[band] || '#7B6FD4';
+    ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=2;
+    let started=false;
+    const steps = 120;
+    for(let i=0;i<=steps;i++){
+      const t = useLog
+        ? Math.pow(10, Math.log10(tMin+0.001)+i/steps*(Math.log10(tMax)-Math.log10(tMin+0.001)))
+        : tMin + i/steps*(tMax-tMin);
+      const m = magAt(t, band, shape);
+      if(m > magMax+0.5 || m < magMin-0.5){ started=false; continue; }
+      const x=txFn(t), y=ty(m);
+      started ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+      started=true;
+    }
+    ctx.stroke();
+ 
+    // Simulated data points with error bars
+    const nPts = shape==='bogus' ? 1 : Math.min(8, Math.round(pW/60));
+    for(let i=0;i<nPts;i++){
+      const frac = (i+0.5)/nPts;
+      const t = useLog
+        ? Math.pow(10, Math.log10(tMin+0.001)+frac*(Math.log10(tMax)-Math.log10(tMin+0.001)))
+        : tMin+frac*(tMax-tMin);
+      const m = magAt(t,band,shape);
+      if(m>magMax+0.2||m<magMin-0.2) continue;
+      const e=0.08+Math.random()*0.08;
+      const x=txFn(t),y=ty(m);
+      ctx.strokeStyle=col;ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(x,ty(m-e));ctx.lineTo(x,ty(m+e));ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x-2.5,ty(m-e));ctx.lineTo(x+2.5,ty(m-e));ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x-2.5,ty(m+e));ctx.lineTo(x+2.5,ty(m+e));ctx.stroke();
+      ctx.beginPath();ctx.arc(x,y,2.8,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+    }
+  });
+  } // end else (parametric shapes)
+ 
+  // ── Axis labels and tick marks ──
+  ctx.fillStyle='rgba(122,111,170,0.72)';
+  ctx.font='9px DM Mono,monospace';
+ 
+  // X-axis: day tick marks with labels
+  // Choose nice tick intervals based on time range
+  const timeSpan = tMax - tMin;
+  let tickInterval;
+  if(timeSpan<=5)       tickInterval=0.5;
+  else if(timeSpan<=15) tickInterval=2;
+  else if(timeSpan<=30) tickInterval=5;
+  else if(timeSpan<=60) tickInterval=10;
+  else                  tickInterval=20;
+ 
+  ctx.strokeStyle='rgba(123,111,212,0.2)';ctx.lineWidth=0.5;
+  ctx.textAlign='center';
+ 
+  // Generate tick positions
+  let tickVal = Math.ceil(tMin/tickInterval)*tickInterval;
+  if(tickVal===0 && tMin<0) tickVal=0;
+  while(tickVal <= tMax) {
+    const xTick = useLog
+      ? pad.l+(Math.log10(Math.max(tickVal,0.001))-Math.log10(tMin+0.001))
+          /(Math.log10(tMax)-Math.log10(tMin+0.001))*pW
+      : pad.l+(tickVal-tMin)/(tMax-tMin)*pW;
+    if(xTick >= pad.l && xTick <= pad.l+pW) {
+      // Tick line
+      ctx.beginPath();ctx.moveTo(xTick,pad.t+pH);ctx.lineTo(xTick,pad.t+pH+4);
+      ctx.strokeStyle='rgba(122,111,170,0.5)';ctx.lineWidth=1;ctx.stroke();
+      // Faint vertical gridline
+      ctx.beginPath();ctx.moveTo(xTick,pad.t);ctx.lineTo(xTick,pad.t+pH);
+      ctx.strokeStyle='rgba(123,111,212,0.08)';ctx.lineWidth=0.5;ctx.stroke();
+      // Label — show as integer if whole, one decimal if not
+      const label = tickVal===Math.round(tickVal) ? tickVal.toString() : tickVal.toFixed(1);
+      ctx.fillStyle='rgba(122,111,170,0.72)';ctx.font='9px DM Mono,monospace';
+      ctx.fillText(label, xTick, pad.t+pH+14);
+    }
+    tickVal = Math.round((tickVal+tickInterval)*1000)/1000;
+  }
+ 
+  // X-axis title with total span
+  const spanLabel = timeSpan >= 1
+    ? `Days post-detection  (0 – ${tMax}d total)`
+    : `Days post-detection  (0 – ${(tMax*24).toFixed(0)}h total)`;
+  ctx.fillStyle='rgba(122,111,170,0.55)';ctx.font='8px DM Mono,monospace';
+  ctx.textAlign='center';
+  ctx.fillText(spanLabel, pad.l+pW/2, H-3);
+ 
+  // Y-axis: magnitude tick marks
+  const magSpan = magMax - magMin;
+  const magTickStep = magSpan<=4?0.5:magSpan<=8?1:2;
+  let magTick = Math.ceil(magMin/magTickStep)*magTickStep;
+  ctx.textAlign='right';
+  while(magTick <= magMax+0.01) {
+    const yTick = ty(magTick);
+    if(yTick >= pad.t && yTick <= pad.t+pH) {
+      ctx.strokeStyle='rgba(122,111,170,0.4)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(pad.l,yTick);ctx.lineTo(pad.l-4,yTick);ctx.stroke();
+      ctx.fillStyle='rgba(122,111,170,0.72)';ctx.font='9px DM Mono,monospace';
+      ctx.fillText(magTick.toFixed(1), pad.l-6, yTick+3);
+    }
+    magTick = Math.round((magTick+magTickStep)*100)/100;
+  }
+ 
+  // Y-axis title
+  ctx.save();ctx.translate(10,pad.t+pH/2);ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';ctx.fillStyle='rgba(122,111,170,0.55)';ctx.font='8px DM Mono,monospace';
+  ctx.fillText('Magnitude (fainter →)',0,0);
+  ctx.restore();
+ 
+  // Legend
+  const leg = document.getElementById('rbLcLegend');
+  if(leg){
+    leg.innerHTML='';
+    const legendBands = shape==='custom' && spec.points
+      ? [...new Set(spec.points.map(p=>p.band))]
+      : bands;
+    legendBands.forEach(b=>{
+      const col=bandColors[b]||'#7B6FD4';
+      leg.innerHTML+=`<div class="leg-item"><div class="leg-line" style="background:${col}"></div>${b}-band</div>`;
+    });
+    const note = shape==='custom'
+      ? `<div class="leg-item" style="font-size:0.7em;color:var(--muted)">Real photometry — ${spec.points?spec.points.length:0} data points</div>`
+      : shape!=='bogus'
+        ? `<div class="leg-item" style="font-size:0.7em;color:var(--muted)">Simulated — swap with real STDPipe photometry (see data guide)</div>`
+        : '';
+    leg.innerHTML += note;
+  }
+}
+ 
+/* ── Load a round ── */
+/* ── Back to view data ── */
+function rbGoBack() {
+  rbUpdateSteps(1);
+  rbSetPhase('View');
+}
+ 
+/* ── Populate a reference panel with frames and metadata ── */
+function rbPopulateRefPanel(suffix, t) {
+  const panel = document.getElementById('rbRefPanel'+suffix);
+  if (!panel) return;
+  panel.classList.add('visible');
+ 
+  // Canvas IDs use numbers (1,2), panel suffix uses strings (RB,Type)
+  const num = suffix === 'RB' ? '1' : '2';
+  const FRAME_PX = 96;
+  setTimeout(()=>{
+    ['Sci','Ref','Dif'].forEach((name,i)=>{
+      const c = document.getElementById('rbRef'+name+num);
+      if (!c) return;
+      c.style.width  = FRAME_PX + 'px';
+      c.style.height = FRAME_PX + 'px';
+      c.width  = FRAME_PX;
+      c.height = FRAME_PX;
+      const specs = [t.frames.science, t.frames.reference, t.frames.difference];
+      drawFrame(c, specs[i], FRAME_PX);
+    });
+  }, 150);
+ 
+  // Sidebar metadata
+  const m = t.meta;
+  document.getElementById('rbRefMeta'+suffix).innerHTML =
+    `<div><strong>Mag:</strong> ${m.filter}=${m.mag} &nbsp; <strong>FWHM:</strong> ${m.fwhm}″</div>`+
+    `<div><strong>Host offset:</strong> ${m.hostOffset}″</div>`+
+    `<div class="ref-note">${m.note}</div>`;
+}
+ 
+function rbLoad(idx) {
+  const t = rbShuffled[idx];
+  requestAnimationFrame(()=>{
+    const sci=document.getElementById('rbSciCanvas');
+    const ref=document.getElementById('rbRefCanvas');
+    const dif=document.getElementById('rbDiffCanvas');
+    [sci,ref,dif].forEach(c=>{if(c){const S=c.offsetWidth||130;c.width=S;c.height=S;}});
+    drawFrame(sci, t.frames.science);
+    drawFrame(ref, t.frames.reference);
+    drawFrame(dif, t.frames.difference);
+    const lc=document.getElementById('rbLcCanvas');
+    if(lc){lc.width=lc.offsetWidth||860;drawLightcurve(lc,t.lightcurve);}
+  });
+  // Metadata
+  const m=t.meta;
+  document.getElementById('rbMeta').innerHTML=[
+    ['RA / Dec',    `${m.ra.toFixed(2)}° / ${m.dec.toFixed(2)}°`],
+    ['Magnitude',   `${m.filter}-band = ${m.mag}`],
+    ['Host offset', `${m.hostOffset}″`],
+    ['PSF FWHM',    `${m.fwhm}″`],
+    ['Note',        m.note],
+  ].map(([k,v])=>`<div class="meta-row"><span class="meta-key">${k}</span><span class="meta-val">${v}</span></div>`).join('');
+ 
+  // Reset reference panels (hidden until questions shown)
+  ['RB','Type'].forEach(s=>{
+    const p=document.getElementById('rbRefPanel'+s);
+    if(p) p.classList.remove('visible');
+  });
+ 
+  rbUpdateScore();
+  rbUpdateStrip(idx);
+  rbUpdateSteps(1);
+  document.getElementById('rbMlBar').style.width='0%';
+  rbSetPhase('View');
+}
+ 
+function rbGoToRealBogus() {
+  const t = rbShuffled[rbIdx];
+  rbPopulateRefPanel('RB', t);
+  rbUpdateSteps(2);
+  rbSetPhase('RB');
+}
+ 
+/* ── Step 1: Real or Bogus decision ── */
+function rbDecideRB(vote) {
+  rbCurrentRBVote = vote;
+  const t = rbShuffled[rbIdx];
+  if(vote === 'real') {
+    // Show type step with reference panel
+    rbPopulateRefPanel('Type', t);
+    rbUpdateSteps(3);
+    const btns = document.getElementById('rbTypeButtons');
+    btns.innerHTML = t.typeChoices.map(code =>
+      `<button class="btn btn-ghost" style="flex:1;min-width:160px;" onclick="rbDecideType('${code}')">${TYPE_LABELS[code]}</button>`
+    ).join('');
+    document.getElementById('rbTypeSub').textContent =
+      'Lightcurve shape, host offset, fading rate, and colour evolution are your clues.';
+    rbSetPhase('Type');
+  } else {
+    // Bogus — skip type step, go to outcome
+    rbDecideType(null);
+  }
+}
+ 
+/* ── Step 2: Type decision ── */
+function rbDecideType(typeVote) {
+  const t = rbShuffled[rbIdx];
+  const rbCorrect  = rbCurrentRBVote === t.label;
+  const typeCorrect = t.label==='real' ? typeVote === t.type : true; // bogus: type always N/A
+ 
+  if(rbCorrect) rbRBScore++;
+  if(t.label==='real'){
+    rbTypeTotal++;
+    if(typeCorrect) rbTypeScore++;
+  }
+  rbIdx++;
+  rbUpdateScore();
+  rbUpdateSteps(4);
+ 
+  // RB outcome panel
+  const rbPanel = document.getElementById('rbRBOutcomePanel');
+  rbPanel.className = 'rb-outcome ' + (rbCorrect
+    ? (t.label==='real' ? 'real-correct' : 'bogus-correct')
+    : 'wrong');
+  document.getElementById('rbRBIcon').textContent  = rbCorrect ? '✓' : '✗';
+  document.getElementById('rbRBTitle').textContent = rbCorrect
+    ? (t.label==='real' ? 'Correct — real transient' : 'Correct — bogus artifact')
+    : (t.label==='real' ? 'Missed — this was real' : 'Missed — this was bogus');
+  document.getElementById('rbRBText').textContent  = rbCorrect ? t.outcomes.rbCorrect : t.outcomes.rbWrong;
+ 
+  // Type outcome panel (only for real cases)
+  const typeWrap = document.getElementById('rbTypeOutcomeWrap');
+  if(t.label === 'real'){
+    typeWrap.classList.remove('hidden');
+    const typePanel = document.getElementById('rbTypeOutcomePanel');
+    typePanel.className = 'rb-outcome ' + (typeCorrect ? 'real-correct' : 'wrong');
+    document.getElementById('rbTypeIcon').textContent  = typeCorrect ? '✓' : '✗';
+    document.getElementById('rbTypeTitle').textContent = typeCorrect
+      ? `Correct — ${TYPE_LABELS[t.type]}`
+      : `Incorrect — this was a ${TYPE_LABELS[t.type]}`;
+    document.getElementById('rbTypeText').textContent = typeCorrect
+      ? t.outcomes.typeCorrect : t.outcomes.typeWrong;
+  } else {
+    typeWrap.classList.add('hidden');
+  }
+ 
+  // ML bar
+  const mlPct = Math.round(t.mlRBScore * 100);
+  const bar = document.getElementById('rbMlBar');
+  bar.className = 'ml-bar-fill ' + (t.mlRBScore>=0.5 ? 'real-fill' : 'bogus-fill');
+  document.getElementById('rbMlLabel').textContent =
+    t.mlRBScore>=0.5 ? `${mlPct}% real` : `${100-mlPct}% bogus`;
+  setTimeout(()=>{ bar.style.width=(t.mlRBScore>=0.5?mlPct:100-mlPct)+'%'; },100);
+ 
+  const mlAgreeRB = (rbCurrentRBVote==='real') === (t.mlRBScore>=0.5);
+  document.getElementById('rbMlAgreement').innerHTML =
+    `<span class="${mlAgreeRB?'agree':'disagree'}">`
+    +(mlAgreeRB?'You agreed with the ML model':'You disagreed with the ML model')
+    +`</span> on the real/bogus step.`
+    +(t.mlTypeScore!==null
+      ? ` Type confidence: ${Math.round(t.mlTypeScore*100)}% for ${TYPE_LABELS[t.type]}.`
+      : '');
+ 
+  document.getElementById('rbFact').innerHTML = t.outcomes.fact;
+  document.getElementById('rbNextBtn').textContent = rbIdx>=RB_TOTAL ? '🏁 See Results' : 'Next Round →';
+  rbSetPhase('Outcome');
+}
+ 
+function rbNext() {
+  if(rbIdx >= RB_TOTAL) rbShowFinal();
+  else rbLoad(rbIdx);
+}
+ 
+function rbShowFinal() {
+  const rbPct   = rbIdx>0 ? Math.round(rbRBScore/rbIdx*100) : 0;
+  const typePct = rbTypeTotal>0 ? Math.round(rbTypeScore/rbTypeTotal*100) : 0;
+  document.getElementById('rbFinalRBPct').textContent   = rbPct+'%';
+  document.getElementById('rbFinalTypePct').textContent = rbTypeTotal>0 ? typePct+'%' : 'N/A';
+  const tiers=[
+    {min:85,badge:'🔬 Expert Analyst',msg:'Outstanding. Your eye agrees with the ML pipeline at near-expert level. You\'re ready to review real KNC data as a Tier 2 Image Analyst.'},
+    {min:70,badge:'📡 Image Analyst',  msg:'Strong performance on both steps. You\'re identifying the key discriminating features. A few more sessions and you\'ll be ready for real data review.'},
+    {min:55,badge:'🌱 Learning Fast',  msg:'Good instincts developing. Focus on the lightcurve timescales — KNe fade in days, SNe in weeks. That single clue resolves most type ambiguities.'},
+    {min:0, badge:'🌟 Getting Started',msg:'Every expert started here. Review the feedback from each round — the patterns become clear quickly. Try again and you\'ll be surprised how fast it clicks.'},
+  ];
+  const tier=tiers.find(t=>rbPct>=t.min);
+  document.getElementById('rbTierBadge').textContent=tier.badge;
+  document.getElementById('rbFinalMsg').textContent=tier.msg;
+  rbSetPhase('Final');
+}
+ 
+function rbRestart(){
+  rbIdx=0;rbRBScore=0;rbTypeScore=0;rbTypeTotal=0;rbCurrentRBVote=null;
+  rbShuffled.sort(()=>Math.random()-0.5);
+  rbLoad(0);
+}
+ 
+function rbInit(){
+  rbBuildStrip();
+  rbLoad(0);
+}
+</script>
+</body>
+</html>
