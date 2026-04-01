@@ -29,7 +29,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-    #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; width: 100%; height: 100%; }
 
     /* ── KNC site header ── */
     .knc-site-header {
@@ -268,10 +268,12 @@
     .pri-med     { color: var(--purple-light); font-weight: 700; }
     .pri-retract { color: var(--pink);         font-weight: 700; }
 
-    .skymap-wrap { margin-top: 1.25rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1rem 0.5rem; }
-    .skymap-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 0.6rem; display: flex; align-items: center; justify-content: space-between; }
-    .skymap-legend { display: flex; gap: 1rem; }
-    .skymap-leg-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; color: var(--muted); }
+    .skymap-wrap { margin-top: 1.25rem; background: var(--bg3); border: 1px solid var(--purple-light); border-radius: 14px; padding: 1rem 1rem 0.75rem; box-shadow: 0 0 24px rgba(48,38,130,0.25); }
+    .skymap-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--purple-light); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between; font-weight: 600; flex-wrap: wrap; gap: 0.5rem; }
+    .skymap-legend { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .skymap-leg-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.68rem; color: rgba(237,232,255,0.65); }
+    .leg-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    #skymap { width: 100%; min-height: 360px; display: block; border-radius: 10px; cursor: crosshair; border: 1px solid rgba(123,111,212,0.2); }
     .leg-swatch { width: 10px; height: 10px; border-radius: 2px; }
     #skymap { width: 100%; display: block; border-radius: 8px; cursor: crosshair; }
 
@@ -331,8 +333,92 @@
 
     /* ── Game selector ── */
 
-    /* ── Transient classifier game ── */
-    .rb-score-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2rem; }
+    /* ── How to Play modal ── */
+    .htp-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(9,7,26,0.92); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .htp-overlay.hidden { display: none !important; }
+    .htp-modal {
+      background: var(--bg2); border: 1px solid var(--purple-light);
+      border-radius: 20px; padding: 2.5rem 2.5rem 2rem;
+      width: min(700px, 96vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 24px 80px rgba(48,38,130,0.55);
+      animation: fadeUp 0.35s ease;
+    }
+    @media (max-width: 600px) {
+      .htp-modal {
+        width: 100vw; max-height: 100dvh; border-radius: 0;
+        padding: 1.5rem 1.25rem 1.5rem;
+        border: none;
+      }
+    }
+    .htp-modal::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--purple), var(--pink), var(--yellow));
+      border-radius: 20px 20px 0 0;
+    }
+    .htp-close {
+      position: absolute; top: 1.1rem; right: 1.4rem;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      border-radius: 50%; width: 34px; height: 34px;
+      color: var(--muted); font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; line-height: 1;
+    }
+    .htp-close:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+    .htp-modal h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); font-weight: 800; margin-bottom: 0.3rem; line-height: 1.2; }
+    .htp-modal h2 em { font-style: normal; background: linear-gradient(100deg, var(--yellow), var(--pink-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .htp-subtitle { font-family: 'DM Mono', monospace; font-size: 0.88rem; color: var(--muted); margin-bottom: 1.75rem; line-height: 1.6; }
+    .htp-steps { display: flex; flex-direction: column; gap: 1.1rem; margin-bottom: 1.75rem; }
+    .htp-step { display: flex; gap: 1rem; align-items: flex-start; }
+    .htp-step-num {
+      flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--purple-mid));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 700; color: #fff;
+      margin-top: 2px;
+    }
+    .htp-step-body h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--text); }
+    .htp-step-body p { font-family: 'DM Mono', monospace; font-size: 0.88rem; color: rgba(237,232,255,0.75); line-height: 1.75; margin: 0; }
+    .htp-lc-section { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+    .htp-lc-title { font-family: 'DM Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.13em; color: var(--purple-light); font-weight: 700; margin-bottom: 1rem; }
+    .htp-lc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; }
+    .htp-lc-item { background: var(--bg2); border-radius: 10px; padding: 0.85rem 0.9rem; border: 1px solid var(--border); }
+    .htp-lc-item .lc-type { font-size: 0.82rem; font-weight: 700; color: var(--yellow); margin-bottom: 0.4rem; }
+    .htp-lc-item .lc-desc { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: rgba(237,232,255,0.6); line-height: 1.65; }
+    /* Mini lightcurve preview canvas inside HTP */
+    .htp-lc-canvas-wrap { margin-bottom: 0.5rem; border-radius: 6px; overflow: hidden; background: var(--bg); }
+    .htp-lc-canvas-wrap canvas { display: block; width: 100%; }
+    .htp-tip { background: rgba(255,224,143,0.07); border: 1px solid rgba(255,224,143,0.22); border-radius: 10px; padding: 1rem 1.25rem; font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--yellow); line-height: 1.75; margin-bottom: 1.5rem; }
+    /* ── Persistent info/rules floating button ── */
+    .info-fab {
+      position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 50;
+      background: linear-gradient(135deg, var(--purple), var(--purple-mid));
+      border: 1px solid var(--purple-light); border-radius: 50%;
+      width: 50px; height: 50px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(48,38,130,0.45);
+      transition: all 0.2s ease;
+    }
+    .info-fab:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(48,38,130,0.65); }
+    .info-fab.hidden { display: none !important; }
+    /* ── End-of-game nav buttons ── */
+    .game-end-nav { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem; }
+    .btn-home { background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 0.9rem 1.75rem; font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-home:hover { border-color: var(--purple-light); transform: translateY(-2px); }
+    .btn-next-game { background: linear-gradient(135deg, var(--purple), var(--pink)); color: #fff; border: none; border-radius: 10px; padding: 0.9rem 1.75rem; font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 20px rgba(255,61,121,0.2); }
+    .btn-next-game:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,61,121,0.35); }
+    .btn-register { background: linear-gradient(135deg, var(--yellow-dim), var(--yellow)); color: var(--bg); border: none; border-radius: 10px; padding: 0.9rem 1.75rem; font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-register:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,224,143,0.3); }
+    .rb-outcome.wrong { background: rgba(255,61,121,0.07); border: 1px solid rgba(255,61,121,0.25); }
+    .rb-outcome.wrong::before { background: linear-gradient(90deg, var(--pink), var(--purple)); }
 
     .rb-card {
       background: var(--bg2); border: 1px solid var(--border);
@@ -408,17 +494,162 @@
 
 <canvas id="stars"></canvas>
 
+<!-- ══ HOW TO PLAY — Game 1 Modal ══ -->
+<div class="htp-overlay hidden" id="htpGame1">
+  <div class="htp-modal">
+    <button class="htp-close" onclick="closeHTP()">&times;</button>
+    <h2>Game 1 — <em>Alert Simulator</em></h2>
+    <p class="htp-subtitle">Train the real skills KNC observers use the moment a gravitational wave alert fires. Every scenario is based on a real event.</p>
+    <div class="htp-steps">
+      <div class="htp-step">
+        <div class="htp-step-num">1</div>
+        <div class="htp-step-body">
+          <h4>📡 Read the Alert</h4>
+          <p>A GCN circular arrives — just like the real ones KNC members receive. It tells you what type of event was detected, where in the sky it came from, how certain the position is, and how urgent the follow-up window is. A skymap shows the localization region.</p>
+        </div>
+      </div>
+      <div class="htp-step">
+        <div class="htp-step-num">2</div>
+        <div class="htp-step-body">
+          <h4>🌤 Check Your Conditions</h4>
+          <p>Your observatory's current seeing, moon phase, target altitude, and sky transparency are shown. Good conditions let you go deep. Poor conditions — or a target below the horizon — may mean sitting this one out.</p>
+        </div>
+      </div>
+      <div class="htp-step">
+        <div class="htp-step-num">3</div>
+        <div class="htp-step-body">
+          <h4>🔭 Observe or Skip?</h4>
+          <p>Weigh everything up and make your call. Not every alert is worth chasing — a retracted event or a stormy night are completely valid reasons to pass. Experienced observers know when to say no.</p>
+        </div>
+      </div>
+      <div class="htp-step">
+        <div class="htp-step-num">4</div>
+        <div class="htp-step-body">
+          <h4>✓ See the Outcome</h4>
+          <p>Find out what the right call was and exactly why. The feedback explains the science behind each decision.</p>
+        </div>
+      </div>
+    </div>
+    <div class="htp-tip">💡 <strong>Skymap tip:</strong> A long banana arc = only 2 LIGO detectors fired → big uncertain region to search. A compact blob = all 3 detectors triangulated well → much smaller, efficient search. Retracted events show a red ✕ — always skip those!</div>
+    <div class="htp-lc-section">
+      <div class="htp-lc-title">Skymap shapes you'll see</div>
+      <div class="htp-lc-grid">
+        <div class="htp-lc-item"><div class="lc-type">🍌 GW Banana</div><div class="lc-desc">Long arc across the sky. 2-detector LIGO event. Wide search area — requires many observers.</div></div>
+        <div class="htp-lc-item"><div class="lc-type">🫧 GW Blob</div><div class="lc-desc">Compact island(s). 3-detector event. Well-constrained — focused search possible.</div></div>
+        <div class="htp-lc-item"><div class="lc-type">🎯 Swift GRB</div><div class="lc-desc">Precise bullseye. Swift-XRT narrows position to arcminutes — you can point directly.</div></div>
+        <div class="htp-lc-item"><div class="lc-type">✕ Retracted</div><div class="lc-desc">Red cross. False alarm — the event was withdrawn. Do not observe.</div></div>
+      </div>
+    </div>
+    <div style="text-align:center; padding-top: 0.5rem;">
+      <button class="btn btn-observe" onclick="closeHTP(); switchGame('alert');">🚀 Start Game 1</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HOW TO PLAY — Game 2 Modal ══ -->
+<div class="htp-overlay hidden" id="htpGame2">
+  <div class="htp-modal">
+    <button class="htp-close" onclick="closeHTP()">&times;</button>
+    <h2>Game 2 — <em>Transient Classifier</em></h2>
+    <p class="htp-subtitle">You're doing what the KNC machine-learning pipeline does — but with your eyes and brain. This is exactly the skill our NASA-funded ML project is built on.</p>
+    <div class="htp-steps">
+      <div class="htp-step">
+        <div class="htp-step-num">1</div>
+        <div class="htp-step-body">
+          <h4>🖼 Look at the Image Triplet</h4>
+          <p>You see three images side by side: <strong style="color:var(--yellow)">Science</strong> (new photo), <strong style="color:var(--yellow)">Reference</strong> (old archived photo of the same spot), and <strong style="color:var(--yellow)">Difference</strong> (Science minus Reference). A real new source shows up in Science, is absent in Reference, and leaves a clean round blob in Difference. Artifacts look messy — streaks, double blobs, or sharp single pixels.</p>
+        </div>
+      </div>
+      <div class="htp-step">
+        <div class="htp-step-num">2</div>
+        <div class="htp-step-body">
+          <h4>📈 Study the Lightcurve</h4>
+          <p>The lightcurve shows how bright the source is over days. Each shape is a fingerprint — kilonovae fade in days, supernovae take weeks to months, GRB afterglows decay as smooth power-laws. The reference chart below shows what each one looks like.</p>
+        </div>
+      </div>
+      <div class="htp-step">
+        <div class="htp-step-num">3</div>
+        <div class="htp-step-body">
+          <h4>✓✗ Real or Bogus?</h4>
+          <p>Is this a real astrophysical source, or an image artifact? Check the Difference image morphology and the metadata (especially PSF FWHM vs. seeing — a source sharper than the atmosphere allows is always bogus).</p>
+        </div>
+      </div>
+      <div class="htp-step">
+        <div class="htp-step-num">4</div>
+        <div class="htp-step-body">
+          <h4>🔬 If Real — What Type?</h4>
+          <p>Classify using lightcurve shape, fading speed, host galaxy offset, and colour. Remember: you never see GRBs directly — only their <em>optical afterglows</em>. Short GRB afterglows (compact mergers) may carry a kilonova; long GRB afterglows (collapsing stars) do not.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="htp-lc-section">
+      <div class="htp-lc-title">Lightcurve shape reference — what each transient looks like</div>
+      <div class="htp-lc-grid" id="htpLcGrid">
+        <div class="htp-lc-item">
+          <div class="lc-type">💛 Kilonova</div>
+          <div class="htp-lc-canvas-wrap"><canvas id="htpLc_kn" height="70"></canvas></div>
+          <div class="lc-desc">Peaks in &lt;1 day. Fades fast. Turns red quickly (r-process lanthanides).</div>
+        </div>
+        <div class="htp-lc-item">
+          <div class="lc-type">⚡ Short GRB afterglow</div>
+          <div class="htp-lc-canvas-wrap"><canvas id="htpLc_sgrb" height="70"></canvas></div>
+          <div class="lc-desc">Power-law decay. Blue. May show a KN red bump at ~2 days.</div>
+        </div>
+        <div class="htp-lc-item">
+          <div class="lc-type">💥 Long GRB afterglow</div>
+          <div class="htp-lc-canvas-wrap"><canvas id="htpLc_lgrb" height="70"></canvas></div>
+          <div class="lc-desc">Power-law decay, steepens at jet break (~2d). No KN bump. Blue.</div>
+        </div>
+        <div class="htp-lc-item">
+          <div class="lc-type">🌟 Type Ia Supernova</div>
+          <div class="htp-lc-canvas-wrap"><canvas id="htpLc_snia" height="70"></canvas></div>
+          <div class="lc-desc">Slow ~15d rise. Secondary i-band bump at +30d. Weeks–months.</div>
+        </div>
+        <div class="htp-lc-item">
+          <div class="lc-type">🌀 Core-collapse SN</div>
+          <div class="htp-lc-canvas-wrap"><canvas id="htpLc_ccsn" height="70"></canvas></div>
+          <div class="lc-desc">Long plateau ~80d (Type II-P). Star-forming host. Very slow.</div>
+        </div>
+        <div class="htp-lc-item">
+          <div class="lc-type">🕳 Tidal Disruption</div>
+          <div class="htp-lc-canvas-wrap"><canvas id="htpLc_tde" height="70"></canvas></div>
+          <div class="lc-desc">Smooth rise ~40d. t⁻⁵/³ decline. Nuclear. UV-bright.</div>
+        </div>
+        <div class="htp-lc-item">
+          <div class="lc-type">🔥 AGN Flare</div>
+          <div class="htp-lc-canvas-wrap"><canvas id="htpLc_agn" height="70"></canvas></div>
+          <div class="lc-desc">Slow, irregular variability. Source visible in reference. Nuclear.</div>
+        </div>
+        <div class="htp-lc-item">
+          <div class="lc-type">✗ Bogus</div>
+          <div class="htp-lc-canvas-wrap"><canvas id="htpLc_bogus" height="70"></canvas></div>
+          <div class="lc-desc">Single-epoch spike. No real lightcurve. FWHM anomaly.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="htp-tip">💡 <strong>Key rule:</strong> A source with FWHM smaller than the atmospheric seeing is <em>always</em> a detector artifact — the atmosphere blurs everything to at least the seeing size. No real star or transient can beat the atmosphere.</div>
+    <div style="text-align:center; padding-top: 0.5rem;">
+      <button class="btn btn-observe" onclick="closeHTP(); switchGame('bogus');">🚀 Start Game 2</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Persistent floating info button ══ -->
+<button class="info-fab hidden" id="infoFab" onclick="openInfoFab()" title="How to play / Rules">ℹ️</button>
+
 <div class="knc-site-header">
   <div class="knc-logo-wrap">
     <img src="./KiloNovaCatcher_files/LOGO_FINAL_J_600.png" alt="KiloNova Catcher">
   </div>
   <nav class="knc-nav">
-    <a href="http://kilonovacatcher.in2p3.fr/science">Science</a>
-    <a href="http://kilonovacatcher.in2p3.fr/faq">FAQ</a>
-    <a href="http://kilonovacatcher.in2p3.fr/howitworks">How It Works</a>
-    <a href="http://kilonovacatcher.in2p3.fr/about">About Us</a>
+    <a href="Our_Science_Page.html">Science</a>
+    <a href="Knc_faq.html">FAQ</a>
+    <a href="How_it_works.html">How It Works</a>
+    <a href="About_us.html">About Us</a>
     <a href="#" class="active">Games</a>
-    <a href="http://kilonovacatcher.in2p3.fr/registration">Register</a>
+    <a href="register.html">Register</a>
   </nav>
 </div>
 
@@ -438,7 +669,7 @@
      HERO GAME CARDS
 ══════════════════════════════════════ -->
 <div class="game-hero" id="gameHero">
-  <div class="game-card card-alert" onclick="switchGame('alert')">
+  <div class="game-card card-alert" onclick="openHTP('game1')">
     <span class="game-card-icon">📡</span>
     <div class="game-card-label">Game 1 · Tier 1 — Observer</div>
     <div class="game-card-title">Alert Simulator</div>
@@ -446,7 +677,7 @@
     <span class="game-card-badge">Tier 1 — Observer</span>
     <div class="game-card-start">Play now →</div>
   </div>
-  <div class="game-card card-bogus" onclick="switchGame('bogus')">
+  <div class="game-card card-bogus" onclick="openHTP('game2')">
     <span class="game-card-icon">🔬</span>
     <div class="game-card-label">Game 2 · Tier 1→2 Bridge</div>
     <div class="game-card-title">Transient Classifier</div>
@@ -493,6 +724,11 @@
  
   <div id="phaseAlert">
     <div class="gcn-ticker"><span>GCN NETWORK FEED &nbsp;|&nbsp; <span class="hl">● LIVE</span> &nbsp;|&nbsp; Monitoring LVK O4 · SVOM · Fermi-GBM · Swift-BAT &nbsp;|&nbsp; Last event: 2.3 hrs ago &nbsp;|&nbsp; <span class="hl-pink">Active observers: 14</span> &nbsp;|&nbsp; GW events this run: 3 &nbsp;|&nbsp;</span></div>
+    <!-- Skymap gets its own prominent card, rendered here by JS -->
+    <div id="skymapCard" class="card" style="padding:1.5rem 1.75rem;">
+      <div class="card-title">Sky Localisation Map</div>
+      <!-- drawSkymap() injects .skymap-wrap here -->
+    </div>
     <div class="card"><div class="card-title">Incoming GCN Alert</div><div class="alert-box" id="alertBox"></div></div>
     <div class="text-center"><button class="btn btn-primary" onclick="goToConditions()">📡 Check Sky Conditions →</button></div>
   </div>
@@ -537,8 +773,10 @@
         <div class="rank-pill" id="rankBadge">—</div>
         <p class="final-msg" id="finalMessage"></p>
         <div class="final-cta">
-          <button class="btn-join"   onclick="window.location.href='#join'">🚀 Join KNC Network</button>
-          <button class="btn-replay" onclick="restartSim()">↩ Play Again</button>
+          <button class="btn-home"      onclick="window.location.href='KiloNovaCatcher_main.html'">🏠 Home</button>
+          <button class="btn-next-game" onclick="switchGame('bogus')">🔬 Try Game 2 →</button>
+          <button class="btn-replay"    onclick="restartSim()">↩ Play Again</button>
+          <button class="btn-register"  onclick="window.location.href='register.html'">🚀 Join KNC</button>
         </div>
       </div>
     </div>
@@ -656,7 +894,7 @@
       <div class="rb-card" style="margin-bottom:0;">
         <div class="decision-section">
           <div class="decision-prompt">Step 2 — What type of transient is it?</div>
-          <div class="decision-sub" id="rbTypeSub">Use the lightcurve shape, host offset, magnitude, and fading rate to classify the source.</div>
+          <div class="decision-sub" id="rbTypeSub">Use the lightcurve shape, host offset, magnitude, and fading rate to classify the source. Note: GRBs themselves are not optically visible — you are classifying the <em>afterglow</em> at the GRB position. Short GRB afterglows originate from compact object mergers and may carry a kilonova component; long GRB afterglows come from collapsing massive stars and do not.</div>
           <div class="decision-buttons" id="rbTypeButtons" style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center;margin-top:1.5rem;">
             <!-- Populated by JS -->
           </div>
@@ -672,6 +910,11 @@
       <div class="outcome-icon"  id="rbRBIcon"></div>
       <div class="outcome-title" id="rbRBTitle"></div>
       <div class="outcome-text"  id="rbRBText"></div>
+    </div>
+    <!-- Plain-language bogus explainer (shown when player called bogus wrong OR for all bogus cases) -->
+    <div id="rbBogusExplainer" class="hidden" style="background:rgba(255,224,143,0.06);border:1px solid rgba(255,224,143,0.2);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--yellow);font-weight:700;margin-bottom:0.85rem;">🔍 What the data was telling you</div>
+      <div id="rbBogusExplainerText" style="font-family:'DM Mono',monospace;font-size:0.84rem;color:rgba(237,232,255,0.75);line-height:1.85;"></div>
     </div>
     <!-- Type result (only shown if real) -->
     <div id="rbTypeOutcomeWrap">
@@ -718,8 +961,10 @@
         <div class="tier-pill" id="rbTierBadge">—</div>
         <p class="rb-final-msg" id="rbFinalMsg"></p>
         <div class="final-cta">
-          <button class="btn-join"   onclick="window.location.href='#join'">🚀 Join KNC Network</button>
-          <button class="btn-replay" onclick="rbRestart()">↩ Play Again</button>
+          <button class="btn-home"      onclick="window.location.href='KiloNovaCatcher_main.html'">🏠 Home</button>
+          <button class="btn-next-game" onclick="switchGame('alert')">📡 Back to Game 1</button>
+          <button class="btn-replay"    onclick="rbRestart()">↩ Play Again</button>
+          <button class="btn-register"  onclick="window.location.href='register.html'">🚀 Join KNC</button>
         </div>
       </div>
     </div>
@@ -1416,192 +1661,239 @@ const scenarios = [
  
 /* ── Skymap renderer ── */
 function drawSkymap(scenario) {
-  const old=document.getElementById('skymapWrap');
-  if(old)old.remove();
-  const wrap=document.createElement('div');
-  wrap.className='skymap-wrap';wrap.id='skymapWrap';
-  const labelBar=document.createElement('div');
-  labelBar.className='skymap-label';
-  const alertType=scenario.alert.type||'';
-  const isGW=alertType.includes('GW')||alertType.includes('LIGO')||alertType.includes('KAGRA');
-  const regionColor=isGW?'rgba(63,207,200,0.55)':'rgba(255,224,143,0.55)';
-  const regionLabel=isGW?'LVK 90% region':'GRB localisation';
-  labelBar.innerHTML=`<span>Sky Localisation Map</span><div class="skymap-legend"><div class="skymap-leg-item"><div class="leg-swatch" style="background:${regionColor}"></div>${regionLabel}</div><div class="skymap-leg-item"><div class="leg-swatch" style="background:rgba(255,61,121,0.8);border-radius:50%"></div>Best position</div><div class="skymap-leg-item"><div class="leg-swatch" style="background:rgba(123,111,212,0.4)"></div>Milky Way</div></div>`;
+  // Inject into the dedicated skymap card, not after alertBox
+  const card = document.getElementById('skymapCard');
+  // Remove any previous skymap wrap
+  const old = document.getElementById('skymapWrap');
+  if (old) old.remove();
+
+  const wrap = document.createElement('div');
+  wrap.className = 'skymap-wrap'; wrap.id = 'skymapWrap';
+
+  const alertType = scenario.alert.type || '';
+  const isGW = alertType.includes('GW') || alertType.includes('LIGO') || alertType.includes('KAGRA');
+  const regionColor = isGW ? 'rgba(63,207,200,0.55)' : 'rgba(255,224,143,0.55)';
+  const regionLabel = isGW ? 'LVK 90% credible region' : 'GRB localisation';
+
+  const labelBar = document.createElement('div');
+  labelBar.className = 'skymap-label';
+  labelBar.innerHTML = `<span>All-Sky Localisation — Aitoff Projection</span><div class="skymap-legend"><div class="skymap-leg-item"><div class="leg-swatch" style="background:${regionColor}"></div>${regionLabel}</div><div class="skymap-leg-item"><div class="leg-swatch" style="background:rgba(255,61,121,0.8);border-radius:50%;width:10px;height:10px;"></div>Best position</div><div class="skymap-leg-item"><div class="leg-swatch" style="background:rgba(123,111,212,0.4)"></div>Milky Way</div></div>`;
   wrap.appendChild(labelBar);
-  const canvas=document.createElement('canvas');
-  canvas.id='skymap';canvas.height=260;
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'skymap';
+  canvas.style.minHeight = '380px';
   wrap.appendChild(canvas);
-  document.getElementById('alertBox').after(wrap);
- 
-  requestAnimationFrame(()=>{
-    const W=canvas.offsetWidth||820,H=270;
-    canvas.width=W;canvas.height=H;
-    const ctx=canvas.getContext('2d');
-    const cx=W/2,cy=H/2;
-    // Aitoff projection outputs x in [-π/2, π/2] and y in [-π/2, π/2].
-    // Divide scale factors by π/2 so the full sphere fits inside the canvas.
-    const rx=(W*0.46)/(Math.PI/2),ry=(H*0.46)/(Math.PI/2);
- 
-    function aitoff(raDeg,decDeg){
-      const ra=((raDeg%360)+360)%360;
-      const lDeg=ra<=180?ra:ra-360;
-      const l=lDeg*Math.PI/180;
-      const b=Math.max(-89.9,Math.min(89.9,decDeg))*Math.PI/180;
-      const a2=Math.acos(Math.max(-1,Math.min(1,Math.cos(b)*Math.cos(l/2))));
-      const s=a2<1e-9?1:Math.sin(a2)/a2;
-      return{x:cx+rx*(Math.cos(b)*Math.sin(l/2)/s),y:cy-ry*(Math.sin(b)/s)};
+
+  // Append wrap inside the card (after the card-title div)
+  card.appendChild(wrap);
+
+  requestAnimationFrame(() => {
+    const W = canvas.offsetWidth || 860;
+    const H = Math.max(400, Math.round(W * 0.46)); // taller proportional height
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const cx = W / 2, cy = H / 2;
+    const rx = (W * 0.46) / (Math.PI / 2);
+    const ry = (H * 0.46) / (Math.PI / 2);
+
+    function aitoff(raDeg, decDeg) {
+      const ra = ((raDeg % 360) + 360) % 360;
+      const lDeg = ra <= 180 ? ra : ra - 360;
+      const l = lDeg * Math.PI / 180;
+      const b = Math.max(-89.9, Math.min(89.9, decDeg)) * Math.PI / 180;
+      const a2 = Math.acos(Math.max(-1, Math.min(1, Math.cos(b) * Math.cos(l / 2))));
+      const s = a2 < 1e-9 ? 1 : Math.sin(a2) / a2;
+      return { x: cx + rx * (Math.cos(b) * Math.sin(l / 2) / s), y: cy - ry * (Math.sin(b) / s) };
     }
- 
-    let _seed=314159;
-    function srng(){_seed^=_seed<<13;_seed^=_seed>>7;_seed^=_seed<<17;return(_seed>>>0)/4294967296;}
- 
-    ctx.fillStyle='#09071A';ctx.fillRect(0,0,W,H);
- 
+
+    let _seed = 314159;
+    function srng() { _seed ^= _seed << 13; _seed ^= _seed >> 7; _seed ^= _seed << 17; return (_seed >>> 0) / 4294967296; }
+
+    ctx.fillStyle = '#09071A'; ctx.fillRect(0, 0, W, H);
+
     /* Milky Way */
-    const mwNodes=[
+    const mwNodes = [
       [0,-2],[17,-12],[34,-22],[51,-32],[68,-42],[85,-48],[102,-54],[119,-58],[132,-62],[146,-65],[160,-63],[172,-58],[184,-52],[196,-44],[208,-35],[220,-25],[232,-14],[244,-3],[256,8],[268,18],[280,29],[292,38],[304,46],[316,53],[328,59],[340,62],[352,62],[364,58],[376,52],[388,43],[400,33]
-    ].map(([r,d])=>({ra:((r%360)+360)%360,dec:d}));
-    const MW_HW=15;
-    ctx.beginPath();let mwFirst=true;
-    mwNodes.forEach(n=>{const p=aitoff(n.ra,n.dec+MW_HW);mwFirst?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);mwFirst=false;});
-    [...mwNodes].reverse().forEach(n=>{const p=aitoff(n.ra,n.dec-MW_HW);ctx.lineTo(p.x,p.y);});
-    ctx.closePath();ctx.fillStyle='rgba(123,111,212,0.12)';ctx.fill();
- 
+    ].map(([r, d]) => ({ ra: ((r % 360) + 360) % 360, dec: d }));
+    const MW_HW = 15;
+    ctx.beginPath(); let mwFirst = true;
+    mwNodes.forEach(n => { const p = aitoff(n.ra, n.dec + MW_HW); mwFirst ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y); mwFirst = false; });
+    [...mwNodes].reverse().forEach(n => { const p = aitoff(n.ra, n.dec - MW_HW); ctx.lineTo(p.x, p.y); });
+    ctx.closePath(); ctx.fillStyle = 'rgba(123,111,212,0.14)'; ctx.fill();
+
     /* Grid */
-    ctx.strokeStyle='rgba(123,111,212,0.17)';ctx.lineWidth=0.5;
-    [-60,-30,0,30,60].forEach(dec=>{ctx.beginPath();for(let r=0;r<=360;r+=3){const p=aitoff(r,dec);r===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}ctx.stroke();});
-    [0,60,120,180,240,300].forEach(ra=>{ctx.beginPath();for(let d=-80;d<=80;d+=4){const p=aitoff(ra,d);d===-80?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}ctx.stroke();});
- 
-    /* Border */
-    ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
-    ctx.strokeStyle='rgba(123,111,212,0.35)';ctx.lineWidth=1;ctx.stroke();
- 
-    /* Axis labels */
-    ctx.font='9px DM Mono, monospace';ctx.fillStyle='rgba(122,111,170,0.72)';ctx.textAlign='center';
-    ctx.fillText('0h',cx,cy+13);
-    [{lbl:'6h',ra:90},{lbl:'18h',ra:270}].forEach(o=>{const p=aitoff(o.ra,0);ctx.fillText(o.lbl,p.x,p.y+13);});
-    ctx.fillText('12h',cx-rx+10,cy+13);ctx.fillText('12h',cx+rx-10,cy+13);
-    ctx.textAlign='right';
-    [{lbl:'+60°',dec:60},{lbl:'0°',dec:0},{lbl:'-60°',dec:-60}].forEach(o=>{const p=aitoff(0,o.dec);ctx.fillText(o.lbl,p.x-4,p.y+3);});
- 
+    ctx.strokeStyle = 'rgba(123,111,212,0.18)'; ctx.lineWidth = 0.7;
+    [-60,-30,0,30,60].forEach(dec => {
+      ctx.beginPath();
+      for (let r = 0; r <= 360; r += 2) { const p = aitoff(r, dec); r === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y); }
+      ctx.stroke();
+    });
+    [0,60,120,180,240,300].forEach(ra => {
+      ctx.beginPath();
+      for (let d = -80; d <= 80; d += 3) { const p = aitoff(ra, d); d === -80 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y); }
+      ctx.stroke();
+    });
+
+    /* Border ellipse */
+    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(123,111,212,0.45)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    /* Axis labels — bigger and clearer */
+    ctx.font = 'bold 11px DM Mono, monospace';
+    ctx.fillStyle = 'rgba(180,170,220,0.85)';
+    ctx.textAlign = 'center';
+    // RA labels along equator
+    [{ lbl: '0h / 24h', ra: 0 }, { lbl: '6h', ra: 90 }, { lbl: '12h', ra: 180 }, { lbl: '18h', ra: 270 }].forEach(o => {
+      const p = aitoff(o.ra, 0);
+      ctx.fillText(o.lbl, p.x, p.y + 16);
+    });
+    // Dec labels
+    ctx.textAlign = 'right';
+    ctx.font = '10px DM Mono, monospace';
+    ctx.fillStyle = 'rgba(160,150,200,0.7)';
+    [{ lbl: '+60°', dec: 60 }, { lbl: '+30°', dec: 30 }, { lbl: '0°', dec: 0 }, { lbl: '-30°', dec: -30 }, { lbl: '-60°', dec: -60 }].forEach(o => {
+      const p = aitoff(0, o.dec);
+      ctx.fillText(o.lbl, p.x - 5, p.y + 3);
+    });
+
     /* Stars */
-    for(let i=0;i<300;i++){
-      const ra=srng()*360,dec=(Math.acos(2*srng()-1)*180/Math.PI)-90;
-      const p=aitoff(ra,dec);const r=srng()*0.9+0.2;
-      ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=`rgba(200,195,255,${srng()*0.45+0.2})`;ctx.fill();
+    for (let i = 0; i < 400; i++) {
+      const ra = srng() * 360, dec = (Math.acos(2 * srng() - 1) * 180 / Math.PI) - 90;
+      const p = aitoff(ra, dec); const r = srng() * 1.1 + 0.25;
+      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,195,255,${srng() * 0.5 + 0.2})`; ctx.fill();
     }
- 
-    const sky=scenario.sky;
-    if(!sky||sky.type==='none')return;
-    const YEL='rgba(255,224,143,',PINK='rgba(255,61,121,',TEAL='rgba(63,207,200,';
- 
-    /* helper: draw a closed region, lifting pen at RA wrap discontinuities */
-    function drawRegion(pts,fillCol,strokeCol,lw=1.5){
-      if(!pts||pts.length<2)return;
-      ctx.beginPath();let penDown=false,prevRA=null;
-      for(let i=0;i<pts.length;i++){
-        const ra=((pts[i].ra%360)+360)%360,q=aitoff(ra,pts[i].dec);
-        const raJump=prevRA!==null&&Math.abs(ra-prevRA)>180;
-        if(raJump)penDown=false;
-        penDown?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
-        penDown=true;prevRA=ra;
+
+    const sky = scenario.sky;
+    if (!sky || sky.type === 'none') return;
+    const YEL = 'rgba(255,224,143,', PINK = 'rgba(255,61,121,', TEAL = 'rgba(63,207,200,';
+
+    function drawRegion(pts, fillCol, strokeCol, lw = 2) {
+      if (!pts || pts.length < 2) return;
+      ctx.beginPath(); let penDown = false, prevRA = null;
+      for (let i = 0; i < pts.length; i++) {
+        const ra = ((pts[i].ra % 360) + 360) % 360, q = aitoff(ra, pts[i].dec);
+        const raJump = prevRA !== null && Math.abs(ra - prevRA) > 180;
+        if (raJump) penDown = false;
+        penDown ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
+        penDown = true; prevRA = ra;
       }
-      ctx.closePath();ctx.fillStyle=fillCol;ctx.fill();ctx.strokeStyle=strokeCol;ctx.lineWidth=lw;ctx.stroke();
+      ctx.closePath(); ctx.fillStyle = fillCol; ctx.fill();
+      ctx.strokeStyle = strokeCol; ctx.lineWidth = lw; ctx.stroke();
     }
- 
-    /* helper: sample ellipse as polygon of RA/Dec points */
-    function ellipsePts(raCtr,decCtr,raHalf,decHalf,steps=90){
-      const pts=[];
-      // Near poles cosD→0 making RA extent explode. Cap at 60° to stay on map.
-      const cosD=Math.max(0.25,Math.cos(decCtr*Math.PI/180));
-      for(let i=0;i<=steps;i++){
-        const t=i/steps*2*Math.PI;
-        pts.push({ra:raCtr+(raHalf/cosD)*Math.cos(t),dec:Math.max(-89.5,Math.min(89.5,decCtr+decHalf*Math.sin(t)))});
+
+    function ellipsePts(raCtr, decCtr, raHalf, decHalf, steps = 90) {
+      const pts = [];
+      const cosD = Math.max(0.25, Math.cos(decCtr * Math.PI / 180));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps * 2 * Math.PI;
+        pts.push({ ra: raCtr + (raHalf / cosD) * Math.cos(t), dec: Math.max(-89.5, Math.min(89.5, decCtr + decHalf * Math.sin(t))) });
       }
       return pts;
     }
- 
-    if(sky.type==='swift_grb'){
-      const tp=aitoff(((sky.ra%360)+360)%360,sky.dec);
-      const r=Math.max(4,sky.errPx||5);
-      ctx.beginPath();ctx.arc(tp.x,tp.y,r,0,Math.PI*2);ctx.fillStyle=YEL+'0.18)';ctx.fill();ctx.strokeStyle=YEL+'0.8)';ctx.lineWidth=1.2;ctx.stroke();
-      ctx.beginPath();ctx.arc(tp.x,tp.y,2.5,0,Math.PI*2);ctx.fillStyle=PINK+'1)';ctx.fill();
-      ctx.strokeStyle=PINK+'0.9)';ctx.lineWidth=1;const arm=10;
-      ctx.beginPath();ctx.moveTo(tp.x-arm,tp.y);ctx.lineTo(tp.x+arm,tp.y);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(tp.x,tp.y-arm);ctx.lineTo(tp.x,tp.y+arm);ctx.stroke();
-      ctx.font='8px DM Mono, monospace';ctx.fillStyle=YEL+'0.7)';
-      const labelY=tp.y>cy?tp.y-r-6:tp.y+r+12;
-      ctx.textAlign=tp.x>cx?'right':'left';
-      const labelX=tp.x>cx?tp.x-r-4:tp.x+r+4;
-      ctx.fillText('XRT ±'+(sky.errArcmin||2)+'′',labelX,labelY);
+
+    // Map label font — bigger for readability
+    const mapFont = 'bold 11px DM Mono, monospace';
+
+    if (sky.type === 'swift_grb') {
+      const tp = aitoff(((sky.ra % 360) + 360) % 360, sky.dec);
+      const r = Math.max(6, sky.errPx || 5);
+      // Error circle
+      ctx.beginPath(); ctx.arc(tp.x, tp.y, r * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = YEL + '0.12)'; ctx.fill();
+      ctx.strokeStyle = YEL + '0.7)'; ctx.lineWidth = 1.8; ctx.stroke();
+      // Centre dot
+      ctx.beginPath(); ctx.arc(tp.x, tp.y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = PINK + '1)'; ctx.fill();
+      // Crosshair
+      ctx.strokeStyle = PINK + '0.85)'; ctx.lineWidth = 1.5;
+      const arm = 16;
+      ctx.beginPath(); ctx.moveTo(tp.x - arm, tp.y); ctx.lineTo(tp.x + arm, tp.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tp.x, tp.y - arm); ctx.lineTo(tp.x, tp.y + arm); ctx.stroke();
+      // Label
+      ctx.font = mapFont; ctx.fillStyle = YEL + '0.85)';
+      const labelY = tp.y > cy ? tp.y - r * 2.5 - 10 : tp.y + r * 2.5 + 18;
+      ctx.textAlign = tp.x > cx ? 'right' : 'left';
+      const labelX = tp.x > cx ? tp.x - r - 6 : tp.x + r + 6;
+      ctx.fillText('Swift XRT ±' + (sky.errArcmin || 2) + '′', labelX, labelY);
     }
- 
-    else if(sky.type==='fermi_grb'){
-      const r50=sky.r50||4,r90=sky.r90||9;
-      drawRegion(ellipsePts(sky.ra,sky.dec,r90,r90*0.85),YEL+'0.08)',YEL+'0.35)',1.2);
-      drawRegion(ellipsePts(sky.ra,sky.dec,r50,r50*0.85),YEL+'0.16)',YEL+'0.55)',1.5);
-      const tp=aitoff(((sky.ra%360)+360)%360,sky.dec);
-      ctx.beginPath();ctx.arc(tp.x,tp.y,3.5,0,Math.PI*2);ctx.fillStyle=PINK+'1)';ctx.fill();
-      // ry is now in canvas-pixels-per-radian; convert degree radius to pixels
-      const blobPxH=r90*(Math.PI/180)*ry;
-      ctx.font='8px DM Mono, monospace';ctx.fillStyle=YEL+'0.65)';ctx.textAlign='center';
-      const labelY90=tp.y-blobPxH-8;
-      ctx.fillText('Fermi-GBM 90% (~'+Math.round(Math.PI*r90*r90*0.85)+'°²)',tp.x,labelY90<14?tp.y+blobPxH+14:labelY90);
+
+    else if (sky.type === 'fermi_grb') {
+      const r50 = sky.r50 || 4, r90 = sky.r90 || 9;
+      drawRegion(ellipsePts(sky.ra, sky.dec, r90, r90 * 0.85), YEL + '0.09)', YEL + '0.40)', 2);
+      drawRegion(ellipsePts(sky.ra, sky.dec, r50, r50 * 0.85), YEL + '0.18)', YEL + '0.65)', 2);
+      const tp = aitoff(((sky.ra % 360) + 360) % 360, sky.dec);
+      ctx.beginPath(); ctx.arc(tp.x, tp.y, 5, 0, Math.PI * 2); ctx.fillStyle = PINK + '1)'; ctx.fill();
+      const blobPxH = r90 * (Math.PI / 180) * ry;
+      ctx.font = mapFont; ctx.fillStyle = YEL + '0.8)'; ctx.textAlign = 'center';
+      const labelY90 = tp.y - blobPxH - 12;
+      ctx.fillText('Fermi-GBM 90% (~' + Math.round(Math.PI * r90 * r90 * 0.85) + '°²)', tp.x, labelY90 < 18 ? tp.y + blobPxH + 18 : labelY90);
     }
- 
-    else if(sky.type==='gw_banana'){
-      const spine=sky.arc,hw=sky.hw||8;
-      if(spine&&spine.length>1){
-        const topPts=spine.map(p=>({ra:p.ra,dec:Math.min(89,p.dec+hw)}));
-        const botPts=[...spine].reverse().map(p=>({ra:p.ra,dec:Math.max(-89,p.dec-hw)}));
-        drawRegion([...topPts,...botPts],TEAL+'0.10)',TEAL+'0.50)',1.5);
-        ctx.beginPath();ctx.setLineDash([4,3]);let spineDown=false,prevSpineRA=null;
-        spine.forEach(p=>{
-          const ra=((p.ra%360)+360)%360,q=aitoff(ra,p.dec);
-          const raJump=prevSpineRA!==null&&Math.abs(ra-prevSpineRA)>180;
-          if(raJump)spineDown=false;
-          spineDown?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
-          spineDown=true;prevSpineRA=ra;
+
+    else if (sky.type === 'gw_banana') {
+      const spine = sky.arc, hw = sky.hw || 8;
+      if (spine && spine.length > 1) {
+        const topPts = spine.map(p => ({ ra: p.ra, dec: Math.min(89, p.dec + hw) }));
+        const botPts = [...spine].reverse().map(p => ({ ra: p.ra, dec: Math.max(-89, p.dec - hw) }));
+        drawRegion([...topPts, ...botPts], TEAL + '0.13)', TEAL + '0.60)', 2);
+        // Spine dashed line
+        ctx.beginPath(); ctx.setLineDash([5, 4]);
+        let spineDown = false, prevSpineRA = null;
+        spine.forEach(p => {
+          const ra = ((p.ra % 360) + 360) % 360, q = aitoff(ra, p.dec);
+          const raJump = prevSpineRA !== null && Math.abs(ra - prevSpineRA) > 180;
+          if (raJump) spineDown = false;
+          spineDown ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
+          spineDown = true; prevSpineRA = ra;
         });
-        ctx.strokeStyle=TEAL+'0.6)';ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
-        const mid=spine[Math.floor(spine.length/2)];
-        const mp=aitoff(((mid.ra%360)+360)%360,mid.dec);
-        ctx.font='8px DM Mono, monospace';ctx.fillStyle=TEAL+'0.7)';ctx.textAlign='center';
-        const bLabelY=mp.y-hw*(Math.PI/180)*ry-8;
-        ctx.fillText('LVK 90% ('+sky.area+'°²)',mp.x,bLabelY<14?mp.y+hw*(Math.PI/180)*ry+14:bLabelY);
+        ctx.strokeStyle = TEAL + '0.7)'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]);
+        const mid = spine[Math.floor(spine.length / 2)];
+        const mp = aitoff(((mid.ra % 360) + 360) % 360, mid.dec);
+        ctx.font = mapFont; ctx.fillStyle = TEAL + '0.85)'; ctx.textAlign = 'center';
+        const bLabelY = mp.y - hw * (Math.PI / 180) * ry - 12;
+        ctx.fillText('LVK 90% (' + sky.area + '°²)', mp.x, bLabelY < 18 ? mp.y + hw * (Math.PI / 180) * ry + 18 : bLabelY);
       }
     }
- 
-    else if(sky.type==='gw_blob'){
-      (sky.islands||[]).forEach((isl,idx)=>{
-        const alpha=idx===0?0.18:0.10;
-        drawRegion(ellipsePts(isl.ra,isl.dec,isl.raHalf,isl.decHalf),YEL+alpha+')',YEL+'0.55)',1.5);
+
+    else if (sky.type === 'gw_blob') {
+      (sky.islands || []).forEach((isl, idx) => {
+        const alpha = idx === 0 ? 0.20 : 0.11;
+        drawRegion(ellipsePts(isl.ra, isl.dec, isl.raHalf, isl.decHalf), YEL + alpha + ')', YEL + '0.60)', 2);
       });
-      if(sky.islands&&sky.islands.length>0){
-        const best=sky.islands[0],tp=aitoff(((best.ra%360)+360)%360,best.dec);
-        ctx.beginPath();ctx.arc(tp.x,tp.y,3.5,0,Math.PI*2);ctx.fillStyle=PINK+'1)';ctx.fill();
-        ctx.strokeStyle=PINK+'0.9)';ctx.lineWidth=1;const arm=8;
-        ctx.beginPath();ctx.moveTo(tp.x-arm,tp.y);ctx.lineTo(tp.x+arm,tp.y);ctx.stroke();
-        ctx.beginPath();ctx.moveTo(tp.x,tp.y-arm);ctx.lineTo(tp.x,tp.y+arm);ctx.stroke();
-        ctx.font='8px DM Mono, monospace';ctx.fillStyle=YEL+'0.65)';ctx.textAlign='center';
-        ctx.fillText('LVK 90% ('+sky.area+'°²)',tp.x,tp.y-best.decHalf*(Math.PI/180)*ry-8);
+      if (sky.islands && sky.islands.length > 0) {
+        const best = sky.islands[0], tp = aitoff(((best.ra % 360) + 360) % 360, best.dec);
+        ctx.beginPath(); ctx.arc(tp.x, tp.y, 5, 0, Math.PI * 2); ctx.fillStyle = PINK + '1)'; ctx.fill();
+        ctx.strokeStyle = PINK + '0.85)'; ctx.lineWidth = 1.5;
+        const arm = 12;
+        ctx.beginPath(); ctx.moveTo(tp.x - arm, tp.y); ctx.lineTo(tp.x + arm, tp.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(tp.x, tp.y - arm); ctx.lineTo(tp.x, tp.y + arm); ctx.stroke();
+        ctx.font = mapFont; ctx.fillStyle = YEL + '0.8)'; ctx.textAlign = 'center';
+        ctx.fillText('LVK 90% (' + sky.area + '°²)', tp.x, tp.y - best.decHalf * (Math.PI / 180) * ry - 12);
       }
     }
- 
-    else if(sky.type==='gw_wide'){
-      (sky.patches||[]).forEach(p=>{
-        drawRegion(ellipsePts(p.ra,p.dec,p.raHalf,p.decHalf,48),TEAL+'0.07)',TEAL+'0.28)',1);
+
+    else if (sky.type === 'gw_wide') {
+      (sky.patches || []).forEach(p => {
+        drawRegion(ellipsePts(p.ra, p.dec, p.raHalf, p.decHalf, 48), TEAL + '0.08)', TEAL + '0.32)', 1.5);
       });
-      const c=sky.centroid||(sky.patches&&sky.patches[0]);
-      if(c){const cp=aitoff(((c.ra%360)+360)%360,c.dec);ctx.font='8px DM Mono, monospace';ctx.fillStyle=TEAL+'0.65)';ctx.textAlign='center';ctx.fillText('LVK 90% (~'+sky.area+'°²)',cp.x,cp.y-28);}
+      const c = sky.centroid || (sky.patches && sky.patches[0]);
+      if (c) {
+        const cp = aitoff(((c.ra % 360) + 360) % 360, c.dec);
+        ctx.font = mapFont; ctx.fillStyle = TEAL + '0.8)'; ctx.textAlign = 'center';
+        ctx.fillText('LVK 90% (~' + sky.area + '°²)', cp.x, cp.y - 32);
+      }
     }
- 
-    else if(sky.type==='retracted'){
-      const cp=aitoff(180,0);ctx.strokeStyle=PINK+'0.5)';ctx.lineWidth=2;const s=30;
-      ctx.beginPath();ctx.moveTo(cp.x-s,cp.y-s);ctx.lineTo(cp.x+s,cp.y+s);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(cp.x+s,cp.y-s);ctx.lineTo(cp.x-s,cp.y+s);ctx.stroke();
-      ctx.font='bold 11px DM Mono, monospace';ctx.fillStyle=PINK+'0.7)';ctx.textAlign='center';
-      ctx.fillText('EVENT RETRACTED',cp.x,cp.y+s+16);
+
+    else if (sky.type === 'retracted') {
+      const cp = aitoff(180, 0);
+      ctx.strokeStyle = PINK + '0.6)'; ctx.lineWidth = 3;
+      const s = 44;
+      ctx.beginPath(); ctx.moveTo(cp.x - s, cp.y - s); ctx.lineTo(cp.x + s, cp.y + s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cp.x + s, cp.y - s); ctx.lineTo(cp.x - s, cp.y + s); ctx.stroke();
+      ctx.font = 'bold 14px DM Mono, monospace';
+      ctx.fillStyle = PINK + '0.8)'; ctx.textAlign = 'center';
+      ctx.fillText('EVENT RETRACTED — DO NOT OBSERVE', cp.x, cp.y + s + 22);
     }
   });
 }
@@ -1713,10 +2005,129 @@ function switchGame(game) {
  
   if (game === 'bogus' && !rbInitialised) { rbInit(); rbInitialised = true; }
  
+  // Show persistent info FAB once a game is active
+  document.getElementById('infoFab').classList.remove('hidden');
+
   // Scroll to tab bar after animation
   setTimeout(() => {
     if (tabsBar) tabsBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 700);
+}
+
+/* ── How to Play modal functions ── */
+function openHTP(game) {
+  document.getElementById('htpGame1').classList.toggle('hidden', game !== 'game1');
+  document.getElementById('htpGame2').classList.toggle('hidden', game !== 'game2');
+  document.body.style.overflow = 'hidden';
+  if (game === 'game2') {
+    // Draw mini lightcurves after modal renders
+    requestAnimationFrame(() => drawHTPLightcurves());
+  }
+}
+
+function closeHTP() {
+  document.getElementById('htpGame1').classList.add('hidden');
+  document.getElementById('htpGame2').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+/* ── Mini lightcurve previews for Game 2 HTP ── */
+function drawHTPLightcurves() {
+  const configs = [
+    { id:'htpLc_kn',   shape:'kilonova', peak:19.5, bands:['r','i'], tMax:10 },
+    { id:'htpLc_sgrb', shape:'grb_short',peak:19.0, bands:['r'],     tMax:10 },
+    { id:'htpLc_lgrb', shape:'grb_long', peak:18.5, bands:['r'],     tMax:14 },
+    { id:'htpLc_snia', shape:'snia',     peak:19.2, bands:['r','i'], tMax:60 },
+    { id:'htpLc_ccsn', shape:'ccsn',     peak:19.5, bands:['r'],     tMax:100 },
+    { id:'htpLc_tde',  shape:'tde',      peak:19.0, bands:['g','r'], tMax:90 },
+    { id:'htpLc_agn',  shape:'agn',      peak:19.2, bands:['r'],     tMax:60 },
+    { id:'htpLc_bogus',shape:'bogus',    peak:17.5, bands:['r'],     tMax:5  },
+  ];
+  const bandColors = {g:'#5a40e0',r:'#ff3d79',i:'#e07b00',z:'#00b8a0'};
+
+  configs.forEach(cfg => {
+    const canvas = document.getElementById(cfg.id);
+    if (!canvas) return;
+    // Use fixed 200px width — offsetWidth is 0 while modal is hidden
+    const W = 200;
+    const H = 70;
+    canvas.width = W; canvas.height = H;
+    canvas.style.width = '100%'; canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#06040F'; ctx.fillRect(0,0,W,H);
+
+    const pad = {l:6,r:6,t:6,b:14};
+    const pW = W-pad.l-pad.r, pH = H-pad.t-pad.b;
+    const peak = cfg.peak;
+    const tMin = cfg.shape.includes('grb') ? 0.1 : 0;
+    const tMax = cfg.tMax;
+    const magMin = peak - 1.2;
+    const magMax = peak + 3.0;
+    const useLog = cfg.shape.includes('grb') || cfg.shape === 'tde';
+
+    const txL = t => pad.l + (Math.log10(Math.max(t,0.01)) - Math.log10(tMin+0.01)) / (Math.log10(tMax) - Math.log10(tMin+0.01)) * pW;
+    const txLin = t => pad.l + (t - tMin)/(tMax - tMin) * pW;
+    const txFn = useLog ? txL : txLin;
+    const ty = m => pad.t + (m - magMin)/(magMax - magMin) * pH;
+
+    // grid
+    ctx.strokeStyle='rgba(123,111,212,0.1)'; ctx.lineWidth=0.5; ctx.setLineDash([2,2]);
+    for(let i=1;i<4;i++){const y=pad.t+i*(pH/3);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pW,y);ctx.stroke();}
+    ctx.setLineDash([]);
+
+    function magAt(t, band) {
+      const bi=['g','r','i','z'].indexOf(band);
+      const off=[0,0.3,0.6,0.9][bi]||0;
+      if(cfg.shape==='kilonova'){const rise=t<0.5?(0.5-t)*3:0;const fall=t>0.5?(t-0.5)*1.4:0;const red=band==='g'?t*0.5:band==='i'?-t*0.2:0;return peak+off+rise+fall+red;}
+      if(cfg.shape==='grb_short'){const t0=Math.max(t,0.01);return peak+off+2.5*1.1*Math.log10(t0/0.1);}
+      if(cfg.shape==='grb_long'){const t0=Math.max(t,0.01);const a=t<2?1.0:1.8;return peak+2.5*a*Math.log10(t0/0.1)+off;}
+      if(cfg.shape==='snia'){const tP=15;const rise=t<tP?(tP-t)*0.08:0;const fall=t>tP?(t-tP)*0.05:0;const bump=band==='i'&&t>20&&t<40?-0.4*Math.exp(-Math.pow(t-30,2)/80):0;return peak+off+rise+fall+bump;}
+      if(cfg.shape==='ccsn'){const tP=20;const rise=t<tP?(tP-t)*0.06:0;const fall=t>80?(t-80)*0.03:0;return peak+off+rise+fall;}
+      if(cfg.shape==='agn'){const seed2=Math.round(t*77+band.charCodeAt(0)*13);const j=((seed2*2654435761)>>>0)/4294967296*0.4-0.2;return peak+off+t*0.02+j;}
+      if(cfg.shape==='tde'){const tP=40;return t<=tP?peak+off+Math.pow((tP-t)/tP,2)*2.5:peak+off+2.5*(5/3)*Math.log10(t/tP);}
+      if(cfg.shape==='bogus'){return t<0.15||t>0.85?99:peak+off;}
+      return peak+off;
+    }
+
+    cfg.bands.forEach(band => {
+      const col = bandColors[band]||'#7B6FD4';
+      ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=1.8;
+      let started=false;
+      for(let i=0;i<=80;i++){
+        const t=useLog?Math.pow(10,Math.log10(tMin+0.01)+i/80*(Math.log10(tMax)-Math.log10(tMin+0.01))):tMin+i/80*(tMax-tMin);
+        const m=magAt(t,band);
+        if(m>magMax+0.3||m<magMin-0.3){started=false;continue;}
+        const x=txFn(t),y=ty(m);
+        started?ctx.lineTo(x,y):ctx.moveTo(x,y);
+        started=true;
+      }
+      ctx.stroke();
+    });
+
+    // x-axis label
+    ctx.fillStyle='rgba(122,111,170,0.55)'; ctx.font='8px DM Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText('Days →', pad.l+pW/2, H-2);
+    ctx.textAlign='left';
+    ctx.fillStyle='rgba(122,111,170,0.45)'; ctx.font='7px DM Mono,monospace';
+    ctx.fillText('mag ↓', 1, pad.t+8);
+  });
+}
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', function() {
+  ['htpGame1','htpGame2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', function(e) { if (e.target === this) closeHTP(); });
+  });
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeHTP(); });
+
+/* ── FAB: open the relevant HTP for whichever game is active ── */
+function openInfoFab() {
+  const game1Active = !document.getElementById('gameAlert').classList.contains('hidden');
+  openHTP(game1Active ? 'game1' : 'game2');
 }
 </script>
  
@@ -2164,8 +2575,8 @@ const CLASSIFIER_DATA = [
  
 const TYPE_LABELS = {
   KN:       'Kilonova',
-  shortGRB: 'Short GRB afterglow',
-  longGRB:  'Long GRB afterglow',
+  shortGRB: 'Short GRB afterglow (merger)',
+  longGRB:  'Long GRB afterglow (collapsar)',
   SNIa:     'Type Ia supernova',
   CCSN:     'Core-collapse SN',
   AGN:      'AGN flare',
@@ -2750,8 +3161,40 @@ function rbDecideType(typeVote) {
   document.getElementById('rbRBIcon').textContent  = rbCorrect ? '✓' : '✗';
   document.getElementById('rbRBTitle').textContent = rbCorrect
     ? (t.label==='real' ? 'Correct — real transient' : 'Correct — bogus artifact')
-    : (t.label==='real' ? 'Missed — this was real' : 'Missed — this was bogus');
+    : (t.label==='real' ? 'Missed — this was real' : 'Missed — this was a bogus artifact');
   document.getElementById('rbRBText').textContent  = rbCorrect ? t.outcomes.rbCorrect : t.outcomes.rbWrong;
+
+  // Bogus explainer — always shown for bogus cases so players understand what to look for
+  const explainerWrap = document.getElementById('rbBogusExplainer');
+  const explainerText = document.getElementById('rbBogusExplainerText');
+  if (t.label === 'bogus') {
+    explainerWrap.classList.remove('hidden');
+    // Build plain-language explanation from the artifact type and metadata
+    const art = t.frames?.difference?.artifact || '';
+    const fwhm = t.meta?.fwhm;
+    const note = t.meta?.note || '';
+    let explanation = '';
+
+    if (art === 'hotpix') {
+      explanation = `<p><strong style="color:var(--yellow)">The flat lightcurve:</strong> A real transient — even a brief one — should brighten and then fade over hours or days. This source had a single detection with no change at all. A completely flat or absent lightcurve is a major red flag: real astrophysical sources always vary.</p>
+      <p><strong style="color:var(--yellow)">The PSF size (sharpness):</strong> The metadata showed a FWHM of ${fwhm}″. FWHM just means "how wide the source looks" — think of it like blur radius. The atmosphere blurs everything by at least the "seeing" amount (usually 1–3″). This source was <em>sharper</em> than the atmosphere allows, which is physically impossible for a real star or transient. Only a single hot pixel on the detector can look that sharp. The atmosphere can't unblur light.</p>`;
+    } else if (art === 'streak') {
+      explanation = `<p><strong style="color:var(--yellow)">The shape:</strong> Real stars and transients look like round blobs because light from a point source gets spread out equally in all directions by the telescope and atmosphere. This source was elongated — stretched in one direction. That's the signature of a moving object (satellite, asteroid) that crossed the field during the exposure, or a detector readout artifact. Nothing real moves that fast across the sky.</p>
+      <p><strong style="color:var(--yellow)">The flat lightcurve:</strong> Satellites appear for just one exposure — a single bright spike — then disappear. Real transients fade gradually over time. A lightcurve with one spike and nothing before or after it almost always means a streak, not a real event.</p>`;
+    } else if (art === 'dipole') {
+      explanation = `<p><strong style="color:var(--yellow)">The Difference image pattern:</strong> The Difference image is made by subtracting the old Reference photo from the new Science photo. If a real new source appeared, the Difference should show a single clean bright spot. Instead, this showed a "dipole" — a bright spot next to a dark hole. That pattern happens when a <em>known star</em> is slightly shifted between the two images (perhaps the telescope pointing changed slightly, or the seeing changed). The star appears positive on one side and negative on the other. No real new source does this.</p>
+      <p><strong style="color:var(--yellow)">The flat lightcurve:</strong> The source appeared the same brightness every time it was observed — no rise, no fall. Real transients change. A perfectly constant brightness usually means we're looking at a known object that wasn't correctly subtracted, not a new event.</p>`;
+    } else if (art === 'edge') {
+      explanation = `<p><strong style="color:var(--yellow)">The position:</strong> This source appeared at the very edge of the detector. Camera sensors have unreliable pixels near their edges — the electronic circuits that read out the data get noisy at the boundaries. Sources appearing right at the frame edge are almost always detector artifacts, not real astrophysical events.</p>
+      <p><strong style="color:var(--yellow)">The flat lightcurve:</strong> No variability over time. Real transients — even slow ones — show some change in brightness. A completely flat detection at a detector edge is one of the most reliable signs of a bogus artifact.</p>`;
+    } else {
+      explanation = `<p><strong style="color:var(--yellow)">The lightcurve:</strong> A real transient brightens and fades over time — even if just slightly. This source showed a single detection with no temporal evolution before or after it. That "one spike then nothing" pattern is a strong indicator of an artifact rather than an astrophysical event.</p>
+      <p><strong style="color:var(--yellow)">The metadata clue:</strong> ${note}. Taken together with the image morphology, the data pointed to an instrumental or atmospheric artifact rather than a real new source in the sky.</p>`;
+    }
+    explainerText.innerHTML = explanation;
+  } else {
+    explainerWrap.classList.add('hidden');
+  }
  
   // Type outcome panel (only for real cases)
   const typeWrap = document.getElementById('rbTypeOutcomeWrap');
